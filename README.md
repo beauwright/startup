@@ -3,7 +3,16 @@
 
 It's hard to appear professional and remain engaged in video calls. **Callsidekick.app** enables users to be more productive during remote calls. Using the screen share audio and microphone audio features in Chromium browsers (as well as Rev AI's realtime speech-to-text API), a live transcript of everything spoken in the call is generated. When the user's name is spoken during the call or when any other watch phrases the user sets are spoken during the call, Callsidekick.app notifies the user and jumps to that location in the transcript. With Callsidekick.app, users can remain attentive during the call and always have the needed context to give thoughtful and confident answers in video calls.
 
-## Features
+## Key Features
+
+- Secure user authentication and account creation
+- Uses screen share audio and microphone audio features in Chromium browsers
+- Integration with Rev AI's realtime speech-to-text API to generate transcript of audio
+- Automatic notifications and transcript location jumps when user's name or custom other phrases the user chooses to watch for are mentioned in the transcript
+- Customizable watch phrases for personalized notifications
+- Easy access to previous transcripts and the ability to start new transcript generation sessions
+- Real-time audio-to-text conversion using websockets
+- Storage of user information, previous transcripts, and notes in the database
 
 ### Authentication
 
