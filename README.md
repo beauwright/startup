@@ -8,7 +8,7 @@ It's hard to appear professional and remain engaged in video calls. **Callsideki
 - Secure user authentication and account creation
 - Uses screen share audio and microphone audio features in Chromium browsers
 - Integration with Rev AI's realtime speech-to-text API to generate transcript of audio
-- Automatic notifications and transcript location jumps when user's name or custom other phrases the user chooses to watch for are mentioned in the transcript
+- Automatic notifications and transcript location jumps when user's name or other custom phrases the user chooses to watch for are mentioned in the transcript
 - Customizable watch phrases for personalized notifications
 - Easy access to previous transcripts and the ability to start new transcript generation sessions
 - Real-time audio-to-text conversion using websockets
