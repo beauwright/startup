@@ -42,3 +42,17 @@ Store user information, store previous transcripts, and notes belonging to the u
 ![Call transcript generation](wireframes/generatetranscriptwireframe.jpg)
 ### Add a new watch phrase popup
 ![Watch phrase popup](wireframes/watchphrasepopupwireframe.jpg)
+
+
+# HTML Deliverable
+## Properly structured HTML
+- HTML pages exist for each component of the application ✅
+- HTML pages link between pages as necessary ✅
+- Lorem ipsum text added for generated text, other needed text is written into the HTML ✅
+- Logo image added to the header of [index.html](/index.html)
+- Placeholder for 3rd party service added in [call.html](/call.html) ✅
+- A placeholder for logging in and logging out added in [login.html](/login.html) and [signup.html](/signup.html), a placeholder for where the user's name will be displayed in the dashboard after logging in is added in [dashboard.html](/dashboard.html) ✅
+- Database data placeholder added to [dashboard.html](/dashboard.html) ✅
+- Websocket data placeholder added to [call.html](/call.html) ✅
+##
+There are multiple Git commits, each with a specific, useful comment attached ✅
