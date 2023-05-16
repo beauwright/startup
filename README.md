@@ -56,3 +56,14 @@ Store user information, store previous transcripts, and notes belonging to the u
 - Websocket data placeholder added to [call.html](/call.html) ✅
 ##
 There are multiple Git commits, each with a specific, useful comment attached ✅
+
+
+# CSS Deliverable
+## Properly styled CSS
+- Header, footer, and main content body added ✅
+- Navigational elements added ✅
+- Application elements present ✅
+- Application text content present ✅
+- Image present (website logo in the header of every page) ✅
+## 
+There are multiple Git commits, each with a specific, useful comment attached ✅
