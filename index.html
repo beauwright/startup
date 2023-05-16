@@ -4,63 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CallSidekick</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/index.css">
+
 </head>
 <body>
     <!-- Navigation -->
     <header>
-        <img src="callsidekicklogo.png" alt="CallSidekick Logo"  width="50">
-        <h1>CallSidekick</h1>
-        <nav>
-            <ul>
-                <li><a href="login.html">Login</a></li>
-                <li><a href="signup.html">Sign Up</a></li>
-            </ul>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <a class="navbar-brand" href="#">
+                <img src="callsidekicklogo.png" alt="CallSidekick Logo" width="30" height="30">
+                CallSidekick
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="signup.html">Sign Up</a>
+                    </li>
+                </ul>
+            </div>
         </nav>
     </header>
 
     <!-- Splash Element -->
-    <section id="splash">
-        Splash content goes here
-    </section>
+    <div class="jumbotron text-center bg-white">
+        <h1 class="display-4">Video calls don't have to suck.</h1>
+        <p class="lead">The tools you need to look your best in every video call.</p>
+        <p class="lead">
+            <a class="btn btn-primary btn-lg" href="/signup.html" role="button">Get Started</a>
+          </p>
+    </div>
 
     <!-- Features -->
-    <section id="features">
-        <h2>Experience the Next Level of Meeting Engagement</h2>
-        <p>Our webapp offers a variety of features designed to enhance your participation in online meetings and video calls. Here's what you can expect:</p>
-    
-        <ul>    
-            <li>
-                <h3>Instant Meeting Transcripts</h3>
-                <p>Keep track of everything that's said with automated, real-time transcription. After the meeting, you can review the transcript to recall important details, decisions, and action items. Plus, you can save, search, and share the transcripts for future reference.</p>
-            </li>
-    
-            <li>
-                <h3>Real-Time Name Alerts</h3>
-                <p>Never miss when your name is mentioned. CallSidekick.app, sends an alert and displays a transcript of what was last said in the video call when your name is spoken. It's the perfect feature for large meetings or when you're multitasking.</p>
-            </li>
-
-            <li>
-                <h3>Nothing to Install</h3>
-                <p>CallSidekick runs completely in your web browswer. There's no plugins or programs you have to install!</p>
-            </li>
-    
-            <li>
-                <h3>Speaker Identification</h3>
-                <p>Know who said what with our speaker diarization feature. We distinguish between individual speakers, making the transcript easier to read and understand.</p>
-            </li>
-    
-            <li>
-                <h3>Custom Alerts</h3>
-                <p>Customize your alert preferences to include other keywords besides your name. Stay informed about the topics you care about, even when you're not actively participating in the conversation.</p>
-            </li>
-        </ul>
+    <section id="features" class="container">
+        <div class="row">
+            <!-- Instant Meeting Transcripts -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Instant Meeting Transcripts</h5>
+                        <p class="card-text">Keep track of everything that's said with automated, real-time transcription. After the meeting, you can review the transcript to recall important details, decisions, and action items. Plus, you can save, search, and share the transcripts for future reference.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Real-Time Name Alerts -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Real-Time Name Alerts</h5>
+                        <p class="card-text">Never miss when your name is mentioned. CallSidekick sends an alert and displays a transcript of what was last said in the video call when your name is spoken. It's the perfect feature for large meetings or when you're multitasking.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Nothing to Install -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Nothing to Install</h5>
+                        <p class="card-text">CallSidekick runs completely in your web browser. There's no plugins or programs to install!</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Speaker Identification -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Speaker Identification</h5>
+                        <p class="card-text">Know who said what. We distinguish between individual speakers, making the transcript easier to read and understand.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Custom Alerts -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Custom Alerts</h5>
+                        <p class="card-text">Customize your alert preferences to include other keywords besides your name. Stay informed about the topics you care about, even when you're not actively participating in the conversation.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Private -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Private and Secure</h5>
+                        <p class="card-text">Your transcripts remain private. Transcripts will never be used for markerting or read by anyone other than you.</p>
+                    </div>
+                </div>
+            </div>
+            <section id="features" class="container pb-5"> 
+        </div>
     </section>
     
 
     <!-- Footer -->
-    <footer>
-        <p>Website by Beau Wright</p>
-        <p><a href="https://github.com/beauwright/startup">View on GitHub</a></p>
+    <footer class="footer mt-auto py-3 bg-dark">
+        <div class="container text-center">
+            <span class="text-muted mr-3">Website by Beau Wright</span>
+            <span class="text-muted mr-3"><a href="https://github.com/beauwright/startup" class="text-white">View on GitHub</a></span>
+        </div>
     </footer>
 </body>
 </html>
