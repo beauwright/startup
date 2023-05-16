@@ -1,0 +1,32 @@
+body {
+    font-family: Arial, sans-serif;
+    color: #333;
+    background-color: #F1F6F7;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+footer {
+    margin-top: auto;
+
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 30%, 0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.card {
+    animation-name: fadeInUp;
+    animation-duration: 1.25s;
+    animation-fill-mode: both;
+}
