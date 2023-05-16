@@ -19,7 +19,7 @@ footer {
 }
 
 #transcript-text {
-    flex: 3;
+    flex: 2;
     overflow-y: auto;
     height: 500px;
     margin-right: 20px;
