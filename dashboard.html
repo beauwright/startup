@@ -4,38 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/dashboard.css">
 </head>
 <body>
     <!-- Navigation -->
     <header>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="index.html">Logout</a></li>
-            </ul>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <a class="navbar-brand" href="index.html">CallSidekick</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Logout</a>
+                    </li>
+                </ul>
+            </div>
         </nav>
     </header>
 
     <!-- Dashboard -->
-    <section id="dashboard">
-        <h2>Welcome, [USER'S NAME GOES HERE]</h2>
-        <a href="call.html" id="create-transcript" class="button">Create New Transcript</a>
+    <section id="dashboard" class="container mt-5">
+        <h2>Welcome, Dennis</h2>
+        <a href="call.html" id="create-transcript" class="btn btn-primary my-3">Create New Transcript</a>
         <h2>Your Transcripts</h2>
         <!-- Placeholder for generated list of user's transcripts-->
-        <ul id="transcript-list">
+        <ul id="transcript-list" class="list-group">
             <!-- Each list item will be a transcript -->
-            <li>My Transcript from 5/1 at 8:00 AM</li>
-            <li>My Transcript from 5/4 at 4:00 PM</li>
-            <li>My Transcript from 5/10 at 2:00 PM</li>
-            <li>THE LINKS TO THE S3 BUCKETS FOR TRANSCRIPTS IS STORED IN THE DB</li>            
+            <li class="list-group-item">My Transcript from 5/1 at 8:00 AM</li>
+            <li class="list-group-item">My Transcript from 5/4 at 4:00 PM</li>
+            <li class="list-group-item">My Transcript from 5/10 at 2:00 PM</li>
+            <li class="list-group-item">The link for each transcript file's S3 bucket will be stored in the DB. Transcripts will appear in a JS popup when clicked on.</li>            
         </ul>
         
     </section>
 
     <!-- Footer -->
-    <footer>
-        <p>Website by Beau Wright</p>
-        <p><a href="https://github.com/beauwright/startup">View on GitHub</a></p>
+    <footer class="footer mt-auto py-3 bg-dark text-center">
+        <div class="container">
+            <span class="text-muted mr-3">Website by Beau Wright</span>
+            <span class="text-muted mr-3"><a href="https://github.com/beauwright/startup" class="text-white">View on GitHub</a></span>
+        </div>
     </footer>
 </body>
 </html>
