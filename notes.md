@@ -13,3 +13,22 @@
 - **Forks**: Copy GitHub repositories for experimentation or contribution
     - Forks maintain links to original repositories for updates and pull requests
 - **Pull requests**: Suggest changes to original repositories from forks
+
+# JavaScript Notes 
+## _Class Notes from 5/16_
+- **JS is a weakly typed language**
+  - Declare mutable vars with let, immutable with const
+  - var is depreciated, do not use
+  - Uses C style formatting for a lot of syntax
+- **Functions**
+  - can be declared with function or as an arrow function `````=>`````
+  - Must have a return type if curly braces are used, uses implicit return otherwise.
+  - Functions are sort of like objects in JS, can be given a name, passed as a parameter, returned as a result, and refereenced from an object or array like a variable would be.
+      - TODO: Learn more about anon functions
+      - De
+      - TODO: Learn more about destructuring arrays
+- **Operators**
+  - TODO: Read about ```??```, ```?=```, ```||```, and ```rest``` operators
+  - ```=>``` makes function
+  - TODO: Look up ```reduce``` and ```filter``` functions
+  - Why have I seen JS with with {{ in a row, was that nested functions or something else?
