@@ -31,7 +31,7 @@
   - TODO: Read about ```??```, ```?=```, ```||```, and ```rest``` operators
   - ```=>``` makes function
   - TODO: Look up ```reduce``` and ```filter``` functions
-  - Why have I seen JS with with {{ in a row, was that nested functions or something else?
+  - Why have I seen JS with {{ in a row, was that nested functions or something else?
 
 ## _Class Notes from 5/18_
 - **JSON**
