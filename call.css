@@ -35,7 +35,8 @@ footer {
 }
 
 #existing-notes {
-    max-height: 250px;
+    display: none;
+    max-height: 190px;
     overflow-y: auto;
     padding: 10px;
     border: 1px solid #ccc;
@@ -62,4 +63,14 @@ footer {
 details {
     margin-top: 20px;
 }
+
+.transcript-title {
+    border-bottom: 2px solid #333; /* Bootstrap primary color */
+    transition: border-bottom .5s;
+}
+
+.transcript-title:hover {
+    border-bottom: 2px solid #007BFF; /* Bootstrap primary color */
+}
+
 
