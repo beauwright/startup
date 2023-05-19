@@ -123,6 +123,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function checkNoteExistence() {
+        const existingNotes = document.getElementById('existing-notes');
+        const noteElements = existingNotes.getElementsByTagName('p');
+
+        if (noteElements.length === 0) {
+            existingNotes.style.display = 'none';
+        } else {
+            existingNotes.style.display = 'block';
+        }
+    }
+
     // Attach the save note function to the save note button
     const saveNoteButton = document.getElementById('save-note');
     saveNoteButton.addEventListener('click', saveNote);
@@ -139,13 +150,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-function checkNoteExistence() {
-    const existingNotes = document.getElementById('existing-notes');
-    const noteElements = existingNotes.getElementsByTagName('p');
 
-    if (noteElements.length === 0) {
-        existingNotes.style.display = 'none';
-    } else {
-        existingNotes.style.display = 'block';
-    }
-}
