@@ -14,7 +14,7 @@ footer {
 
 #dashboard {
     max-width: 800px;
-    margin: auto;
+    margin: auto auto 20px;
 }
 
 #transcript-list {
