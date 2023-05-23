@@ -1,4 +1,4 @@
-# GitHub Notes
+# _GitHub Notes_
 
 - **Git**: provides version tracking and repository cloning
 - **GitHub**: cloud-based service for Git repositories
@@ -41,3 +41,17 @@
     - DOM can be manipulated with JavaScript
 - **JS Modules**
   - TODO: Research more about JS modules and when to use them.
+
+## _Class Notes from 5/23_
+- **Promises**
+  - 3 states
+    - Pending
+    - Fufilled
+    - Rejected
+  - A promise callback function follows a certain signature (e.g \```function callback(resolve, reject) { 
+  resolve('done');}``)
+  - Promises can be chained
+    - Catch and finally functions can be chained too to grab issues from other chained functions 
+    - You can use async/await syntax to handle promises instead
+      - Async always wraps the function in a promise
+      - Await needs to be called from the highest level or another aync function
