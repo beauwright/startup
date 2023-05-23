@@ -54,4 +54,4 @@
     - Catch and finally functions can be chained too to grab issues from other chained functions 
     - You can use async/await syntax to handle promises instead
       - Async always wraps the function in a promise
-      - Await needs to be called from the highest level or another aync function
+      - Await needs to be called from the highest level or another async function
