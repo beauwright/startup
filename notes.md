@@ -46,7 +46,7 @@
 - **Promises**
   - 3 states
     - Pending
-    - Fufilled
+    - Fulfilled
     - Rejected
   - A promise callback function follows a certain signature (e.g \```function callback(resolve, reject) { 
   resolve('done');}``)
