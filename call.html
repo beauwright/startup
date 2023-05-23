@@ -106,6 +106,46 @@
         </div>
     </div>
 
+    <div class="modal fade" id="initCheckModal" tabindex="-1" role="dialog" aria-labelledby="initCheckModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="initCheckModalLabel">Environment Check</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- The initEnvironmentCheck method will fill this in. -->
+                </div>
+                <div class="modal-footer">
+                    <!-- The initEnvironmentCheck method will fill this in. -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="micPermissionModal" tabindex="-1" role="dialog" aria-labelledby="micPermissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="micPermissionModalLabel">Microphone Permissions</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    To also transcribe your own words, we also need access to your microphone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="requestMicrophonePermissions()">Allow Microphone</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Footer -->
     <footer class="footer mt-auto py-3 bg-dark text-center">
