@@ -55,3 +55,15 @@
     - You can use async/await syntax to handle promises instead
       - Async always wraps the function in a promise
       - Await needs to be called from the highest level or another async function
+## _Class Notes from 5/25_
+- **UX Design**
+  - 3 main principles
+    1. Tell a story
+      - Focus on the user and what you are pitching to users that visit your site
+    2. Simplicity
+      - Include only the most important elements users should focus on and eliminate any distractions.
+    3. Consistent
+      - When you follow standard UX practices, users don't have to put too much strain to find what they are looking for
+- Be intentional with your design, only add walls in the user's flow when it's really important to your use case
+  - Put the wall up only when the wall is needed.
+  - 
