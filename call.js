@@ -4,6 +4,7 @@ class Transcript {
         this.title.addEventListener('click', () => $('#changeTitleModal').modal('show'));
         document.getElementById('saveTitle').addEventListener('click', this.saveTitle.bind(this));
 
+        // The hard coded name will be replaced with value called from server
         this.notificationWords = ['Hank'];
         this.dictionaryWords = [];
         this.setupModalListeners();
@@ -39,7 +40,7 @@ class Transcript {
                                                          <button id="bypassScreenShare" class="btn btn-secondary">Bypass Screen Share</button>`);
             } else if (os === "MacOS" || os === "Linux") {
                 // User should screen share their audio and use web version of their video call service
-                $('#initCheckModal .modal-body').text(`${browser} currently only supports audio capture of other ${browser} tabs on ${os}. Most video call platforms like Zoom, Google Meet, and Discord have web versions. Open your video call in your web browser and screen share that tab with the "share tab audio" box checked so Call Sidekick can analyze the audio of your call.`);
+                $('#initCheckModal .modal-body').text(`${browser} currently only supports audio capture of other ${browser} tabs on ${os}. Most video call platforms like Zoom, Google Meet, and Discord have web versions. Open your video call in your web browser, screen share that tab with the "share tab audio" box checked, and navigate back to this tab so Call Sidekick can analyze the audio of your call.`);
                 $('#initCheckModal .modal-footer').html(`<button id="startScreenShare" class="btn btn-primary">Start Screen Share</button>
                                                          <button id="bypassScreenShare" class="btn btn-secondary">Bypass Screen Share</button>`);
             }
@@ -97,7 +98,7 @@ class Transcript {
             .catch(err => {
                 // Handling the error appropriately.
                 console.log('Microphone permission denied', err);
-                $('#micPermissionModal .modal-body').text(`Microphone permission was denied. Please, allow access to continue.`);
+                $('#micPermissionModal .modal-body').text(`Microphone permission was denied. Microphone access is needed so your own words will also be included in the transcript.`);
                 $('#micPermissionModal .modal-footer').html(`<button class="btn btn-primary" id="retryPermissions">Retry Permissions</button>
                                                      <button class="btn btn-secondary" data-dismiss="modal">Close</button>`);
                 document.getElementById('retryPermissions').addEventListener('click', this.requestMicrophonePermissions.bind(this));
