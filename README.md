@@ -82,7 +82,10 @@ There are multiple Git commits, each with a specific, useful comment attached �
 - Support for your applications interaction logic  ✅
   - In the call page, users can take notes, change the transcript title, add and remove notification words and dictionary words
 ## What changed in the JavaScript version?
-The Bootstrap JS was added to make the header navigation functional. Clicking on transcipts in the dashboard now opens a popup where the transcript and notes taken for that call appear.
+The Bootstrap JS was added to make the header navigation functional. Clicking on transcripts in the dashboard now opens a popup where the transcript and notes taken for that call appear.
+
 In the call page, the user can now edit the title, take notes, and edit the transcript settings to add or remove notification words and custom dictionary words.
+
+JS was used to add a nice fade in effect to the cards on the home page as you scroll.
 ## 
 There are multiple Git commits, each with a specific, useful comment attached ✅
