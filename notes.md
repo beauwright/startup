@@ -66,4 +66,9 @@
       - When you follow standard UX practices, users don't have to put too much strain to find what they are looking for
 - Be intentional with your design, only add walls in the user's flow when it's really important to your use case
   - Put the wall up only when the wall is needed.
+## _Class Notes from 5/30_
+- **Web services**
+  - Cross-origin resource sharing
+    - If the front end is making requests to another service that doesn't return your host name or * for Access-Control-Allow-Origin it will be blocked by the browser
+  - Always think from the user's perspective, model out the flows different users might follow
   - 

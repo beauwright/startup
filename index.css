@@ -1,7 +1,7 @@
 body {
-    font-family: Arial, sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Manrope&display=swap');
     color: #333;
-    background-color: #F1F6F7;
+    background-color: #eaf4f3;
 
     display: flex;
     flex-direction: column;
@@ -16,4 +16,13 @@ footer {
     opacity: 0;
     transform: scale(0.85);
     transition: transform 0.5s ease-out, opacity 0.5s ease-out; /* define transition properties */
+}
+
+.btn-primary {
+    background-color: #5eb5cf;
+    border-color: #5eb5cf;
+}
+
+h1 {
+    font-family: Arial, sans-serif;
 }
