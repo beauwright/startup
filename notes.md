@@ -59,11 +59,11 @@
 - **UX Design**
   - 3 main principles
     1. Tell a story
-      - Focus on the user and what you are pitching to users that visit your site
+       - Focus on the user and what you are pitching to users that visit your site
     2. Simplicity
-      - Include only the most important elements users should focus on and eliminate any distractions.
+       - Include only the most important elements users should focus on and eliminate any distractions.
     3. Consistent
-      - When you follow standard UX practices, users don't have to put too much strain to find what they are looking for
+       - When you follow standard UX practices, users don't have to put too much strain to find what they are looking for
 - Be intentional with your design, only add walls in the user's flow when it's really important to your use case
   - Put the wall up only when the wall is needed.
 ## _Class Notes from 5/30_
@@ -71,4 +71,13 @@
   - Cross-origin resource sharing
     - If the front end is making requests to another service that doesn't return your host name or * for Access-Control-Allow-Origin it will be blocked by the browser
   - Always think from the user's perspective, model out the flows different users might follow
-  - 
+- **Node JS**
+  - Same JS interpreter as Chrome stripped to run on a server for backend operations
+  - **Express**
+    - A wrapper around HTTP requests to make them a little simpler to write for Node
+## _Class Notes from 6/1_
+- **MongoDB**
+  - Allows you to represent your data as JSON objects
+  - You can make collections and store schema free JSON inside the collections
+    - Collections are somewhat analogous to tables in SQL, but you don't have to define what values your table will hold up front and entries don't have to match key pairs or values
+    - 
