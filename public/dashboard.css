@@ -25,3 +25,16 @@ footer {
     background-color: #5eb5cf;
     border-color: #5eb5cf;
 }
+
+#transcriptModalBody {
+    white-space: pre;   
+}
+
+
+#transcriptModalBody {
+    white-space: pre-line;
+}
+
+#notesModalBody {
+    white-space: pre-line;
+}

@@ -1,45 +1,53 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Hardcoded user data
-    const transcripts = [
-        { id: 1, title: 'My Transcript from 5/1 at 8:00 AM', notes: 'Notes for transcript 1' },
-        { id: 2, title: 'My Transcript from 5/4 at 4:00 PM', notes: 'Notes for transcript 2' },
-        { id: 3, title: 'My Transcript from 5/10 at 2:00 PM', notes: 'Notes for transcript 3' }
-    ];
-
-    const userName = "Hank";
+    const userName = "johnDoe";
 
     // Update the welcome message
     document.getElementById('welcome-message').textContent = "Welcome, " + userName;
 
-    // Populate the transcript list with hardcoded data
-    const transcriptList = document.getElementById('transcript-list');
-    for (let i = 0; i < transcripts.length; i++) {
-        const listItem = document.createElement('li');
-        listItem.textContent = transcripts[i].title;
-        listItem.classList.add('list-group-item');
-        listItem.dataset.id = transcripts[i].id;  // Store the ID for later
-        transcriptList.appendChild(listItem);
-    }
+    // Fetch the user's transcripts from the server
+    fetch(`/api/users/${userName}/transcripts`)
+    .then(response => response.json())
+    .then(transcripts => {
+        // Populate the transcript list with data from the server
+        const transcriptList = document.getElementById('transcript-list');
+        for (let i = 0; i < transcripts.length; i++) {
+            const listItem = document.createElement('li');
+            listItem.textContent = transcripts[i].title;
+            listItem.classList.add('list-group-item');
+            listItem.dataset.id = transcripts[i].id;  // Store the ID for later
+            transcriptList.appendChild(listItem);
+        }
 
-    // Add event listeners to the list items
-    const transcriptItems = document.querySelectorAll('#transcript-list .list-group-item');
-    for (let i = 0; i < transcriptItems.length; i++) {
-        transcriptItems[i].addEventListener('click', function() {
-            const transcriptId = this.dataset.id;  // Get the ID from the dataset
+        // Add event listeners to the list items
+        const transcriptItems = document.querySelectorAll('#transcript-list .list-group-item');
+        for (let i = 0; i < transcriptItems.length; i++) {
+            transcriptItems[i].addEventListener('click', function() {
+                const transcriptId = this.dataset.id;  // Get the ID from the dataset
 
-            // This is where I will fetch the transcript and notes from the DB using the ID
-            // For now, here's some hard-coded transcript and notes
-            const transcriptText = 'This is the hard-coded transcript for ID ' + transcriptId + '.';
-            const notesText = 'These are the hard-coded notes for transcript ID ' + transcriptId + '.';
-            document.getElementById('transcriptModalBody').textContent = transcriptText;
-            document.getElementById('notesModalBody').textContent = notesText;
+                // Fetch the transcript's notes from the server
+                fetch(`/api/users/${userName}/transcripts/${transcriptId}/notes`)
+                .then(response => response.json())
+                .then(notes => {
+                    // Populate the notes for this transcript
+                    let notesText = '';
+                    for (let j = 0; j < notes.length; j++) {
+                        notesText += `${notes[j].date}: ${notes[j].text}\n`;
+                    }
 
-            // Set the modal title
-            const transcriptTitle = transcripts.find(transcript => transcript.id === parseInt(transcriptId)).title;
-            document.getElementById('transcriptModalLabel').textContent = transcriptTitle;
+                    // Find the transcript
+                    const transcript = transcripts.find(transcript => transcript.id === transcriptId)
+                    
+                    // Set notes and transcript text
+                    document.getElementById('notesModalBody').textContent = notesText;
+                    document.getElementById('transcriptModalBody').textContent = transcript.text;
 
-            // Show the modal
-            $('#transcriptModal').modal('show');
-        });
-    }
+                    // Set the modal title
+                    document.getElementById('transcriptModalLabel').textContent = transcript.title;
+
+                    // Show the modal
+                    $('#transcriptModal').modal('show');
+                });
+            });
+        }
+    });
 });
