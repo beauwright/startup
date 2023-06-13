@@ -51,4 +51,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    fetch('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit')
+        .then(response => response.json())
+        .then(jokeData => {
+            let joke;
+            if (jokeData.type === 'single') {
+                joke = jokeData.joke;
+            } else {
+                joke = `${jokeData.setup} ${jokeData.delivery}`;
+            }
+            document.getElementById('joke').querySelector('.card-body').textContent = joke;
+        })
+        .catch(error => console.log('Failed to fetch a joke:', error));
 });
