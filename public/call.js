@@ -10,6 +10,8 @@ class Transcript {
         this.setupModalListeners();
         this.initEnvironmentCheck();
         this.setupScreenShare();
+        this.userId = "johnDoe";
+        this.transcriptId = null;
     }
 
 
@@ -92,8 +94,14 @@ class Transcript {
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 this.audioStream = stream;
+                this.setInitialTitle();
                 this.initiateTranscript();
                 $('#micPermissionModal').modal('hide');
+
+                // Create new transcript
+                this.createTranscript();
+                this.loadSettings;
+
             })
             .catch(err => {
                 // Handling the error appropriately.
@@ -105,23 +113,92 @@ class Transcript {
                 // Show the microphone permission modal
                 $('#micPermissionModal').modal('show');
             });
-    }    
+    }
+
     setInitialTitle() {
         const date = new Date();
         this.title.textContent = `${(date.getMonth() + 1)}/${date.getDate()}/${date.getFullYear().toString().slice(-2)} ${date.toLocaleTimeString()} Transcript`;
     }
 
-    saveTitle() {
+    async createTranscript() {
+        try {
+            const makeTranscriptDetails = {
+                title: this.title.textContent || "Untitled Transcript",
+                text: "placeholder text until websocket is implemented",
+                userId: this.userId,
+            }
+            const response = await fetch('/api/users/johnDoe/transcript', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(makeTranscriptDetails),
+            });
+    
+            const data = await response.json();
+            console.log(this.transcriptId);
+            this.transcriptId = data.transcript.id;
+            console.log(data);
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    }
+
+    async saveTitle() {
         const newTitle = document.getElementById('newTitle').value;
         if (newTitle.trim() !== '') {
             this.title.textContent = newTitle;
+            console.log("new title is: " + newTitle);
             $('#changeTitleModal').modal('hide');
+            // Update the title on the server
+            const response = await fetch(`/api/users/${this.userId}/transcripts/${this.transcriptId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title: newTitle }),
+            });
+            if (!response.ok) {
+                console.log('Title update failed');
+            }
+        }
+    }
+
+    async loadSettings() {
+        try {
+            const response = await fetch(`/api/users/${this.userId}/transcripts/${this.transcriptId}/settings`);
+            const data = await response.json();
+            this.notificationWords = data.notificationWords || [];
+            this.dictionaryWords = data.dictionaryWords || [];
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    }
+
+    async saveSettings() {
+        const settings = {
+            notificationWords: this.notificationWords,
+            dictionaryWords: this.dictionaryWords,
+        };
+        try {
+            await fetch(`/api/users/${this.userId}/transcripts/${this.transcriptId}/settings`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            });
+        } catch (err) {
+            console.error('Error:', err);
         }
     }
 
     setupModalListeners() {
-        $('#transcriptSettingsModal').on('show.bs.modal', this.populateModal.bind(this));
+        $('#transcriptSettingsModal')
+            .on('show.bs.modal', this.populateModal.bind(this))
+            .on('hide.bs.modal', this.saveSettings.bind(this)); // Save the settings when the modal is closed
     }
+
 
     populateModal() {
         const containers = {
@@ -195,7 +272,8 @@ class Transcript {
 }
 
 class Notes {
-    constructor() {
+    constructor(transcript) {
+        this.transcript = transcript;
         this.container = document.getElementById('existing-notes');
         document.getElementById('save-note').addEventListener('click', this.saveNote.bind(this));
         document.getElementById('end-transcript').addEventListener('click', this.endTranscript.bind(this));
@@ -207,11 +285,10 @@ class Notes {
             const noteElement = document.createElement('div');
             noteElement.classList.add('note-item');
 
-            const noteTime = new Date();
-            const noteTimeString = noteTime.toLocaleTimeString();
+            const noteTime = new Date().toLocaleTimeString();
 
             // Store both note and time in the element's innerHTML
-            noteElement.innerHTML = `<span class="note-time">${noteTimeString}</span> ${newNote}`;
+            noteElement.innerHTML = `<span class="note-time">${noteTime}</span> ${newNote}`;
 
             this.container.appendChild(noteElement);
             document.getElementById('new-note').value = '';
@@ -219,9 +296,32 @@ class Notes {
 
             // Scroll the container to the bottom
             this.container.scrollTop = this.container.scrollHeight;
+
+            // Send the note to the server
+            this.sendNoteToServer(newNote, noteTime);
         }
     }
 
+
+    async sendNoteToServer(note, timestamp) {
+        try {
+            const response = await fetch(`/api/users/${this.transcript.userId}/transcripts/${this.transcript.transcriptId}/notes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    noteText: note,
+                    date: timestamp
+                })
+            });
+
+            const data = await response.json();
+            // Use data.id as needed
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    }
     endTranscript() {
         window.location.href = 'dashboard.html';
     }
@@ -229,6 +329,6 @@ class Notes {
 
 window.addEventListener('DOMContentLoaded', (event) => {
     const transcript = new Transcript();
-    new Notes();
+    new Notes(transcript);
     transcript.setInitialTitle();
 });

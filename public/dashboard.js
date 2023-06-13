@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Show the modal
                     $('#transcriptModal').modal('show');
-                });
+                })
+                    .catch(error => console.log(error.message + transcript));
             });
         }
     });
