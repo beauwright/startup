@@ -38,3 +38,7 @@ footer {
 #notesModalBody {
     white-space: pre-line;
 }
+
+#joke {
+    margin: auto;
+}
