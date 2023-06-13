@@ -80,4 +80,51 @@
   - Allows you to represent your data as JSON objects
   - You can make collections and store schema free JSON inside the collections
     - Collections are somewhat analogous to tables in SQL, but you don't have to define what values your table will hold up front and entries don't have to match key pairs or values
-    - 
+## _Class Notes from 6/13_
+- **Security**
+  - Least privilege access violation principle means give as little permissions to the users as they need to use the website. Here's two problems that can come from failing to follow it:
+    - URL bypass control (bypass the controls of the website just by knowing the right url)
+    - Resource ID allows access (knowing the right resource allows the user to get access to files they otherwise would not have)
+  - Cryptographic failures
+    - Encrypting only at rest
+    - Weak cryptography (SHA1, MD5)
+    - Misused cryptography (no salt, wrong params)
+  - Insecure design
+    - Unlimited trial accounts
+    - Not aware of best practices
+    - Customer data not segmented
+    - Single layer defense
+  - Security misconfigurations
+    - Dev info exposed
+    - Using default configurations
+    - Unnecessary features installed
+    - System not hardened
+  - Vulnerable components
+    - Unneeded/unused packages imported
+    - Untrusted/verified sources
+    - Out of date software
+    - Not tracking vulnerability bulletins
+    - Package versions not locked
+  - ID and auth failures
+    - Credential stuffing
+    - Brute force attacks
+    - Permitting weak passwords
+    - Weak credential recovery
+    - Credentials in the URL
+    - Not expiring auth tokens
+  - Software integrity failures
+    - Unverified CDN usage
+    - Unverified packages
+    - Unverified updates
+    - Insecure CD/CI platforms
+  - Logging failures
+    - Not logging critical requests
+    - Not monitoring system performance
+    - Logs not audited, automatic or manual
+    - Logs not stored centrally
+    - No real-time response
+  - Server side request forgery
+    - I need to go back and review this one
+- TypeScript
+  - Adds static type checking (int, string, etc)
+  - Adds interfaces
