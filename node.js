@@ -1,4 +1,9 @@
 const express = require('express');
+const {
+  v4 : uuidv4,
+  parse:uuidParse,
+  stringify : uuidStringify
+} = require('uuid')
 const app = express();
 
 // The service port. In production the front-end code is statically hosted by the service on the same port.
@@ -13,6 +18,39 @@ app.use(express.static('public'));
 // Router for service endpoints
 var apiRouter = express.Router();
 app.use(`/api`, apiRouter);
+
+// Create a new transcript
+apiRouter.post('/users/:userId/transcript', (req, res) => {
+  const userId = req.params.userId;
+  const transcript = req.body;
+
+  // Basic validation 
+  if (!transcript.title) {
+    return res.status(400).send({ message: 'Missing required transcript fields: id and title' });
+  }
+
+  // Create the new transcript with an empty 'notes' object.
+  const newTranscript = {
+    'id': uuidv4(),
+    'title': transcript.title,
+    'text': transcript.text.toString(),
+    'date': transcript.date || new Date().toUTCString(),
+    'notes': {
+    },
+  };
+  console.log(newTranscript);
+
+  // Verify user exists, after login is implemented, check user is logged in
+  if (!(userId in users)) {
+    return res.status(400).send({ message: 'Invalid user credentials' });
+  } else {
+    // Add the new transcript to the user's list of transcripts
+    users[userId].transcripts[newTranscript.id] = newTranscript;
+  }
+
+  // Send a success response
+  res.status(201).send({ message: 'Transcript created successfully', transcript: newTranscript });
+});
 
 // Get User's Transcripts
 apiRouter.get('/users/:userId/transcripts', (req, res) => {
@@ -39,14 +77,110 @@ apiRouter.get('/users/:userId/transcripts/:transcriptId/notes', (req, res) => {
 apiRouter.post('/users/:userId/transcripts/:transcriptId/notes', (req, res) => {
   const userId = req.params.userId;
   const transcriptId = req.params.transcriptId;
-  const note = req.body;
+  const noteText = req.body.noteText;
+  const date = req.body.date;
+
+  if (!noteText) {
+    return res.status(400).send({ message: 'Note text is required' });
+  }
+
+  const newNote = {
+    id: uuidv4(),
+    date: date,
+    text: noteText,
+  };
+
+  // Check if the user and transcript exist
   if (userId in users && transcriptId in users[userId].transcripts) {
-    users[userId].transcripts[transcriptId].notes[`note${Date.now()}`] = note;
-    res.send({ message: 'Note added successfully' });
+    users[userId].transcripts[transcriptId].notes[newNote.id] = newNote;
+    res.send({ message: 'Note added successfully', note: newNote });
   } else {
     res.status(404).send({ message: 'Transcript not found' });
   }
 });
+
+apiRouter.get('/users/:userId/transcripts/:transcriptId/settings', (req, res) => {
+  const userId = req.params.userId;
+  const transcriptId = req.params.transcriptId;
+
+  if (userId in users && transcriptId in users[userId].transcripts) {
+    let settings = {
+      notificationWords: users[userId].transcripts[transcriptId].notificationWords || [],
+      dictionaryWords: users[userId].transcripts[transcriptId].dictionaryWords || [],
+    }
+    console.log("Transcript settings have been loaded.");
+    console.log(settings);
+    res.json(settings);
+  } else {
+    res.status(404).send({ message: 'Transcript not found' });
+  }
+});
+
+
+apiRouter.patch('/users/:userId/transcripts/:transcriptId', (req, res) => {
+  const userId = req.params.userId;
+  const transcriptId = req.params.transcriptId;
+  const newTitle = req.body.title;
+
+  if (!newTitle) {
+    return res.status(400).send({ message: 'New title is required' });
+  }
+
+  // Check if the user and transcript exist
+  if (userId in users && transcriptId in users[userId].transcripts) {
+    // Update the title
+    users[userId].transcripts[transcriptId].title = newTitle;
+
+    res.send({ message: 'Transcript title updated successfully', transcript: users[userId].transcripts[transcriptId] });
+  } else {
+    res.status(404).send({ message: 'User or transcript not found' });
+  }
+});
+
+apiRouter.get('/users/:userId/transcripts/:transcriptId/settings', (req, res) => {
+  const userId = req.params.userId;
+  const transcriptId = req.params.transcriptId;
+
+  if (userId in users && transcriptId in users[userId].transcripts) {
+    let settings = {
+      notificationWords: users[userId].transcripts[transcriptId].notificationWords || [],
+      dictionaryWords: users[userId].transcripts[transcriptId].dictionaryWords || [],
+    }
+    console.log("Transcript settings have been loaded.");
+    console.log(settings);
+    res.json(settings);
+  } else {
+    res.status(404).send({ message: 'Transcript not found' });
+  }
+});
+
+
+apiRouter.put('/users/:userId/transcripts/:transcriptId/settings', (req, res) => {
+  const userId = req.params.userId;
+  const transcriptId = req.params.transcriptId;
+
+  if (userId in users && transcriptId in users[userId].transcripts) {
+    if (req.body.notificationWords) {
+      users[userId].transcripts[transcriptId].notificationWords = req.body.notificationWords;
+    }
+    if (req.body.dictionaryWords) {
+      users[userId].transcripts[transcriptId].dictionaryWords = req.body.dictionaryWords;
+    }
+    console.log("Transcript settings have been updated.");
+    console.log(users[userId].transcripts[transcriptId]);
+    res.json({ message: 'Transcript updated successfully' });
+  } else {
+    res.status(404).send({ message: 'Transcript not found' });
+  }
+});
+
+
+
+// Handle API calls to bad endpoints
+app.use("/api/*", (_req, res) => {
+  res.status(404).send({ message: "API endpoint not found" });
+});
+
 
 // Return the application's default page if the path is unknown
 app.use((_req, res) => {
