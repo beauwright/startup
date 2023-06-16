@@ -1,16 +1,65 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
 const database = require('./database');
 const app = express();
 const port = process.argv.length > 2 ? process.argv[2] : 4000;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static('public'));
 
+
+const authCookieName = 'token';
 const apiRouter = express.Router();
 app.use(`/api`, apiRouter);
 
-apiRouter.post('/users/:username/transcript', async (req, res) => {
+// Create a user
+apiRouter.post('/auth/register', async (req, res) => {
+  const { username, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const token = uuidv4();
+
+  const user = await database.createUser(username, hashedPassword, token);
+  res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
+  res.status(201).send({ message: 'User created successfully', user });
+});
+
+// Authenticate a user
+apiRouter.post('/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await database.getUserByUsername(username);
+  if (user && await bcrypt.compare(password, user.password)) {
+    res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
+    res.send({ message: 'User authenticated', user });
+  } else {
+    res.status(401).send({ message: 'Invalid credentials' });
+  }
+});
+
+// Logout a user
+apiRouter.delete('/auth/logout', (_req, res) => {
+  res.clearCookie(authCookieName);
+  res.status(204).end();
+});
+
+const secureApiRouter = express.Router();
+apiRouter.use(secureApiRouter);
+
+// Check auth
+secureApiRouter.use(async (req, res, next) => {
+  const authToken = req.cookies[authCookieName];
+  const user = await database.getUserByToken(authToken);
+  if (user) {
+    next();
+  } else {
+    res.status(401).send({ message: 'Unauthorized' });
+  }
+});
+
+
+secureApiRouter.post('/users/:username/transcript', async (req, res) => {
   const username = req.params.username;
   const transcript = req.body;
 
@@ -44,7 +93,7 @@ apiRouter.post('/users/:username/transcript', async (req, res) => {
   res.status(201).send({ message: 'Transcript created successfully', transcript: newTranscript });
 });
 
-apiRouter.get('/users/:username/transcripts', async (req, res) => {
+secureApiRouter.get('/users/:username/transcripts', async (req, res) => {
   const username = req.params.username;
 
   const user = await database.getUserByUsername(username);
@@ -59,7 +108,7 @@ apiRouter.get('/users/:username/transcripts', async (req, res) => {
 });
 
 // Get Transcript's Notes
-apiRouter.get('/users/:userId/transcripts/:transcriptId/notes', async (req, res) => {
+secureApiRouter.get('/users/:userId/transcripts/:transcriptId/notes', async (req, res) => {
   const transcriptId = req.params.transcriptId;
   console.log(transcriptId)
   const transcript = await database.getTranscriptById(transcriptId);
@@ -73,7 +122,7 @@ apiRouter.get('/users/:userId/transcripts/:transcriptId/notes', async (req, res)
 });
 
 // Save Note
-apiRouter.post('/users/:userId/transcripts/:transcriptId/notes', async (req, res) => {
+secureApiRouter.post('/users/:userId/transcripts/:transcriptId/notes', async (req, res) => {
   const transcriptId = req.params.transcriptId;
   const noteText = req.body.noteText;
   const date = req.body.date;
@@ -99,7 +148,7 @@ apiRouter.post('/users/:userId/transcripts/:transcriptId/notes', async (req, res
 });
 
 // Get Transcript's Settings
-apiRouter.get('/users/:userId/transcripts/:transcriptId/settings', async (req, res) => {
+secureApiRouter.get('/users/:userId/transcripts/:transcriptId/settings', async (req, res) => {
   const transcriptId = req.params.transcriptId;
 
   const transcript = await database.getTranscriptById(transcriptId);
@@ -113,7 +162,7 @@ apiRouter.get('/users/:userId/transcripts/:transcriptId/settings', async (req, r
 });
 
 // Update Transcript's Title
-apiRouter.patch('/users/:userId/transcripts/:transcriptId', async (req, res) => {
+secureApiRouter.patch('/users/:userId/transcripts/:transcriptId', async (req, res) => {
   const transcriptId = req.params.transcriptId;
   const newTitle = req.body.title;
 
@@ -133,7 +182,7 @@ apiRouter.patch('/users/:userId/transcripts/:transcriptId', async (req, res) => 
 });
 
 // Update Transcript's Settings
-apiRouter.put('/users/:userId/transcripts/:transcriptId/settings', async (req, res) => {
+secureApiRouter.put('/users/:userId/transcripts/:transcriptId/settings', async (req, res) => {
   const userId = req.params.userId;
   const transcriptId = req.params.transcriptId;
   const newSettings = req.body;
