@@ -13,25 +13,41 @@ app.use(express.static('public'));
 
 const authCookieName = 'token';
 const apiRouter = express.Router();
+const secureApiRouter = express.Router();
 app.use(`/api`, apiRouter);
+app.use(`/api`, secureApiRouter);
 
 // Create a user
 apiRouter.post('/auth/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password, firstName, lastName } = req.body;
+
+  // validation
+  if (!email || !password || !firstName || !lastName) {
+    return res.status(400).send({ message: 'Email, password, first name and last name are required' });
+  }
+
+  // check for existing user
+  const existingUser = await database.getUserByEmail(email);
+  if (existingUser) {
+    return res.status(409).send({ message: 'Email is already in use' });
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const token = uuidv4();
 
-  const user = await database.createUser(username, hashedPassword, token);
-  res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
+  const user = await database.createUser(email, hashedPassword, firstName, lastName, token, uuidv4());
+  //res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
+  res.cookie(authCookieName, token, {  });
   res.status(201).send({ message: 'User created successfully', user });
 });
 
 // Authenticate a user
 apiRouter.post('/auth/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = await database.getUserByUsername(username);
-  if (user && await bcrypt.compare(password, user.password)) {
-    res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
+  const { email, password } = req.body;
+  const user = await database.getUserByEmail(email);
+  if (user && await bcrypt.compare(password, user.hashedPassword)) { // here, use user.hashedPassword instead of user.password
+    //res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
+    res.cookie(authCookieName, user.authToken, { });  // use the user's auth token instead of undefined `token`
     res.send({ message: 'User authenticated', user });
   } else {
     res.status(401).send({ message: 'Invalid credentials' });
@@ -44,14 +60,14 @@ apiRouter.delete('/auth/logout', (_req, res) => {
   res.status(204).end();
 });
 
-const secureApiRouter = express.Router();
-apiRouter.use(secureApiRouter);
-
 // Check auth
 secureApiRouter.use(async (req, res, next) => {
   const authToken = req.cookies[authCookieName];
   const user = await database.getUserByToken(authToken);
+//  console.log("Looking for user of authToken: ", authToken);
+//  console.log(user);
   if (user) {
+    req.user = user;  // Attach the user to the request
     next();
   } else {
     res.status(401).send({ message: 'Unauthorized' });
@@ -59,21 +75,29 @@ secureApiRouter.use(async (req, res, next) => {
 });
 
 
-secureApiRouter.post('/users/:username/transcript', async (req, res) => {
-  const username = req.params.username;
+// Get the authenticated user's data
+secureApiRouter.get('/user', (req, res) => {
+  // Remove the hashed password and authToken from the response for security reasons
+  const { hashedPassword, authToken, ...user } = req.user;
+  res.send(user);
+});
+
+
+secureApiRouter.post('/users/:userId/transcript', async (req, res) => {
+  const id = req.params.userId;
   const transcript = req.body;
 
   if (!transcript.title) {
     return res.status(400).send({ message: 'Missing required transcript field: title' });
   }
 
-  const transcriptUser = await database.getUserByUsername(username);
+  const transcriptUser = await database.getUserById(id);
   if (!transcriptUser) {
     res.status(404).send({ message: 'User not found' });
   }
   const newTranscript = {
     'id': uuidv4(),
-    'userId': transcriptUser.userId,  // Associate the transcript with the user
+    'userId': id,
     'title': transcript.title,
     'text': transcript.text.toString(),
     'date': transcript.date || new Date().toUTCString(),
@@ -82,7 +106,7 @@ secureApiRouter.post('/users/:username/transcript', async (req, res) => {
 
   console.log(newTranscript);
 
-  const user = await database.getUserByUsername(username);
+  const user = await database.getUserById(id);
 
   if (!user) {
     return res.status(400).send({ message: 'Invalid user credentials' });
@@ -93,19 +117,18 @@ secureApiRouter.post('/users/:username/transcript', async (req, res) => {
   res.status(201).send({ message: 'Transcript created successfully', transcript: newTranscript });
 });
 
-secureApiRouter.get('/users/:username/transcripts', async (req, res) => {
-  const username = req.params.username;
+secureApiRouter.get('/users/:userId/transcripts', async (req, res) => {
+  const userId = req.params.userId;
+//  console.log(userId);
+  // Check if the authenticated user's ID matches the requested user's ID
+//  if (userId !== req.user.userId) {
+//    return res.status(403).send({ message: 'Forbidden' });
+//  }
 
-  const user = await database.getUserByUsername(username);
-  console.log(user);
-  if (!user) {
-    res.status(404).send({ message: 'User not found' });
-  } else {
-    const transcripts = await database.getUserTranscripts(user.userId);
-    console.log(transcripts);
-    res.send(transcripts);
-  }
+  const transcripts = await database.getUserTranscripts(userId);
+  res.send(transcripts);
 });
+
 
 // Get Transcript's Notes
 secureApiRouter.get('/users/:userId/transcripts/:transcriptId/notes', async (req, res) => {
@@ -187,7 +210,7 @@ secureApiRouter.put('/users/:userId/transcripts/:transcriptId/settings', async (
   const transcriptId = req.params.transcriptId;
   const newSettings = req.body;
 
-  const user = await database.getUserByUsername(userId);
+  const user = await database.getUserByEmail(userId);
   const transcript = user ? await database.getTranscriptById(transcriptId) : null;
 
   if (!user || !transcript) {

@@ -1,7 +1,8 @@
 const { MongoClient, ObjectId } = require('mongodb');
 const config = require('./dbConfig.json');
+const bcrypt = require('bcrypt');
 
-const url = `mongodb+srv://${config.userName}:${config.password}@${config.hostname}`;
+const url = `mongodb+srv://${config.username}:${config.password}@${config.hostname}`;
 const client = new MongoClient(url);
 const db = client.db('callsidekick');
 const usersCollection = db.collection('users');
@@ -15,6 +16,26 @@ const transcriptsCollection = db.collection('transcripts');
     console.log(`Unable to connect to database with ${url} because ${ex.message}`);
     process.exit(1);
 });
+
+
+async function createUser(email, hashedPassword, firstName, lastName, authToken, id) {
+    const user = { email, hashedPassword, firstName, lastName, authToken, id };
+    const result = await usersCollection.insertOne(user);
+    // Get the inserted document based on the insertedId
+    return await usersCollection.findOne({ _id: result.insertedId });
+}
+
+
+async function verifyUserCredentials(email, hashedPassword) {
+    const user = await usersCollection.findOne({ email });
+    // Use bcrypt to compare the hashed passwords
+    return user && await bcrypt.compare(hashedPassword, user.hashedPassword);
+}
+
+async function getUserByToken(authToken) {
+    return await usersCollection.findOne({ authToken });
+}
+
 
 async function addTranscript(transcript) {
     const result = await transcriptsCollection.insertOne(transcript);
@@ -78,7 +99,7 @@ async function updateTranscriptSettings(transcriptId, newSettings) {
 
 async function createTestUser() {
     const testUser = {
-        username: 'johnDoe',
+        email: 'johnDoe',
         userId: "648b79f541c521eb84022be8",
         email: 'johnDoe@test.com',
         password: 'testPassword'
@@ -108,9 +129,9 @@ let transcriptData = {
 //createTestNote().catch(console.error);
 
 
-async function getUserByUsername(username) {
-    console.log(username);
-    return usersCollection.findOne({ username: username });
+async function getUserByEmail(email) {
+    console.log(email);
+    return usersCollection.findOne({ email: email });
 }
 
 
@@ -124,5 +145,9 @@ module.exports = {
     getTranscriptSettings,
     updateTranscript,
     updateTranscriptSettings,
-    getUserByUsername
+    getUserByEmail,
+    createUser,
+    verifyUserCredentials,
+    getUserByToken
 };
+
