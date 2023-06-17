@@ -1,17 +1,48 @@
+async function fetchUser() {
+    try {
+        const response = await fetch('/api/user/');
+        const data = await response.json();
+        console.log(data);
+
+        if (data.error) {
+            console.error(data.error);
+            window.location.href = '/login.html'; // redirect to login page
+            return null;
+        } else {
+            console.log(data.user);
+            return data;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        window.location.href = '/login.html'; // redirect to login page
+        return null;
+    }
+}
+
+
 class Transcript {
     constructor() {
         this.title = document.getElementById('transcript-title');
         this.title.addEventListener('click', () => $('#changeTitleModal').modal('show'));
         document.getElementById('saveTitle').addEventListener('click', this.saveTitle.bind(this));
 
-        // The hard coded name will be replaced with value called from server
-        this.notificationWords = ['Hank'];
-        this.dictionaryWords = [];
-        this.setupModalListeners();
-        this.initEnvironmentCheck();
-        this.setupScreenShare();
-        this.userId = "johnDoe";
-        this.transcriptId = null;
+        fetchUser().then(user => {
+            if (!user) {
+                return; // Stop execution if user is not logged in
+            }
+
+            this.user = user;
+            this.userId = this.user.id;
+
+            // The hard coded name will be replaced with value called from server
+            this.notificationWords = [];
+            this.dictionaryWords = [];
+            this.setupModalListeners();
+            this.initEnvironmentCheck();
+            this.setupScreenShare();
+            console.log(this.user);
+            this.transcriptId = null;
+        });
     }
 
 
@@ -127,7 +158,9 @@ class Transcript {
                 text: "placeholder text until websocket is implemented",
                 userId: this.userId,
             }
-            const response = await fetch('/api/users/johnDoe/transcript', {
+            console.log(this.userId);
+            console.log("make transcript details: ", makeTranscriptDetails);
+            const response = await fetch(`/api/users/${this.userId}/transcript`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
