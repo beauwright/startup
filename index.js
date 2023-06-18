@@ -55,10 +55,21 @@ apiRouter.post('/auth/login', async (req, res) => {
 });
 
 // Logout a user
-apiRouter.delete('/auth/logout', (_req, res) => {
+apiRouter.delete('/auth/logout', async (req, res) => {
+  const authToken = req.cookies[authCookieName];
+  const user = await database.getUserByToken(authToken);
+  if (!user) {
+    return res.status(401).send({ message: 'Not authenticated' });
+  }
+
+  // Generate a new token and update the user in the database
+  const newToken = uuidv4();
+  await database.updateUserToken(user.id, newToken);
+
   res.clearCookie(authCookieName);
   res.status(204).end();
 });
+
 
 // Check auth
 secureApiRouter.use(async (req, res, next) => {

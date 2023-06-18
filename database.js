@@ -134,6 +134,16 @@ async function getUserByEmail(email) {
     return usersCollection.findOne({ email: email });
 }
 
+async function updateUserToken(id, newToken) {
+    // Assuming you have a "users" collection in your database
+    const user = await usersCollection.updateOne(
+        { id },
+        { $set: { authToken: newToken } }
+    );
+    return user;
+}
+
+
 
 module.exports = {
     addTranscript,
@@ -148,6 +158,7 @@ module.exports = {
     getUserByEmail,
     createUser,
     verifyUserCredentials,
-    getUserByToken
+    getUserByToken,
+    updateUserToken
 };
 

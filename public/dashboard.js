@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
         credentials: 'same-origin',  // This includes cookies in the request
     })
         .then(response => {
-            if (response.status === 403) {
+            if (response.status === 401) {
                 // User is not authenticated. Redirect them to login page
                 window.location.href = 'login.html';
             }
@@ -80,11 +80,19 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
         });
 
-    document.querySelector('a[href="index.html"]').addEventListener('click', function(e) {
+    document.getElementById('logout-button').addEventListener('click', function(e) {
         e.preventDefault();
-        // This is where you would actually log out the user
-        // For now, just redirect to the login page
-        window.location.href = 'login.html';
+        fetch("/api/auth/logout", {
+            method: 'DELETE',
+            credentials: 'same-origin',
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = 'login.html';
+                } else {
+                    console.error('Logout failed:', response);
+                }
+            });
     });
 
     fetch('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist,explicit')
@@ -99,5 +107,4 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('joke').querySelector('.card-body').textContent = joke;
         })
         .catch(error => console.log('Failed to fetch a joke:', error));
-
 });
