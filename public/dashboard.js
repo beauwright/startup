@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'GET',
         credentials: 'same-origin',  // This includes cookies in the request
     })
+        .catch(fetch => {
+            window.location.href = '/login.html';
+        })
         .then(response => {
             if (response.status === 401) {
                 // User is not authenticated. Redirect them to login page

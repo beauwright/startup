@@ -36,8 +36,7 @@ apiRouter.post('/auth/register', async (req, res) => {
   const token = uuidv4();
 
   const user = await database.createUser(email, hashedPassword, firstName, lastName, token, uuidv4());
-  //res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
-  res.cookie(authCookieName, token, {  });
+  res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
   res.status(201).send({ message: 'User created successfully', user });
 });
 
@@ -45,9 +44,10 @@ apiRouter.post('/auth/register', async (req, res) => {
 apiRouter.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await database.getUserByEmail(email);
-  if (user && await bcrypt.compare(password, user.hashedPassword)) { // here, use user.hashedPassword instead of user.password
-    //res.cookie(authCookieName, token, { secure: true, httpOnly: true, sameSite: 'strict' });
-    res.cookie(authCookieName, user.authToken, { });  // use the user's auth token instead of undefined `token`
+  if (user && await bcrypt.compare(password, user.hashedPassword)) {
+    // Update the isActive field when user logs in
+    await database.updateUserIsActive(user.id, true);
+    res.cookie(authCookieName, user.authToken, { secure: true, httpOnly: true, sameSite: 'strict' });
     res.send({ message: 'User authenticated', user });
   } else {
     res.status(401).send({ message: 'Invalid credentials' });
@@ -62,6 +62,9 @@ apiRouter.delete('/auth/logout', async (req, res) => {
     return res.status(401).send({ message: 'Not authenticated' });
   }
 
+  // Set the isActive field to false
+  await database.updateUserIsActive(user.id, false);
+
   // Generate a new token and update the user in the database
   const newToken = uuidv4();
   await database.updateUserToken(user.id, newToken);
@@ -75,10 +78,8 @@ apiRouter.delete('/auth/logout', async (req, res) => {
 secureApiRouter.use(async (req, res, next) => {
   const authToken = req.cookies[authCookieName];
   const user = await database.getUserByToken(authToken);
-//  console.log("Looking for user of authToken: ", authToken);
-//  console.log(user);
-  if (user) {
-    req.user = user;  // Attach the user to the request
+  if (user && user.isActive) {  // Check that the session is active
+    req.user = user;
     next();
   } else {
     res.status(401).send({ message: 'Unauthorized' });

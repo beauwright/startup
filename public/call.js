@@ -2,7 +2,10 @@ async function fetchUser() {
     try {
         const response = await fetch('/api/user/', {
             credentials: 'same-origin',  // This includes cookies in the request
-        });
+        })
+            .catch(response => {
+                window.location.href = '/login.html';
+            });
 
         if (response.status === 401) {
             // User is not authenticated. Redirect them to login page

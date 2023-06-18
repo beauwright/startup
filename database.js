@@ -19,7 +19,7 @@ const transcriptsCollection = db.collection('transcripts');
 
 
 async function createUser(email, hashedPassword, firstName, lastName, authToken, id) {
-    const user = { email, hashedPassword, firstName, lastName, authToken, id };
+    const user = { email, hashedPassword, firstName, lastName, authToken, id, isActive: true };
     const result = await usersCollection.insertOne(user);
     // Get the inserted document based on the insertedId
     return await usersCollection.findOne({ _id: result.insertedId });
@@ -33,7 +33,7 @@ async function verifyUserCredentials(email, hashedPassword) {
 }
 
 async function getUserByToken(authToken) {
-    return await usersCollection.findOne({ authToken });
+    return await usersCollection.findOne({ authToken, isActive: true });
 }
 
 
@@ -138,7 +138,17 @@ async function updateUserToken(id, newToken) {
     // Assuming you have a "users" collection in your database
     const user = await usersCollection.updateOne(
         { id },
-        { $set: { authToken: newToken } }
+        { $set: { authToken: newToken, isActive: false } }
+    );
+    return user;
+}
+
+
+async function updateUserIsActive(id, isActive) {
+    // Assuming you have a "users" collection in your database
+    const user = await usersCollection.updateOne(
+        { id },
+        { $set: { isActive: isActive } }
     );
     return user;
 }
@@ -159,6 +169,7 @@ module.exports = {
     createUser,
     verifyUserCredentials,
     getUserByToken,
-    updateUserToken
+    updateUserToken,
+    updateUserIsActive
 };
 
