@@ -1,12 +1,25 @@
 async function fetchUser() {
     try {
-        const response = await fetch('/api/user/');
+        const response = await fetch('/api/user/', {
+            credentials: 'same-origin',  // This includes cookies in the request
+        });
+
+        if (response.status === 401) {
+            // User is not authenticated. Redirect them to login page
+            window.location.href = '/login.html';
+            return null;
+        }
+
+        if (!response.ok) {
+            console.error('Network response was not ok');
+            throw new Error('Network response was not ok');
+        }
+
         const data = await response.json();
         console.log(data);
 
         if (data.error) {
             console.error(data.error);
-            window.location.href = '/login.html'; // redirect to login page
             return null;
         } else {
             console.log(data.user);
@@ -360,8 +373,26 @@ class Notes {
     }
 }
 
+async function logout() {
+    try {
+        const response = await fetch('/api/auth/logout', {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Logout failed');
+        }
+
+        // Redirect to the login page on successful logout
+        window.location.href = '/login.html';
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 window.addEventListener('DOMContentLoaded', (event) => {
     const transcript = new Transcript();
     new Notes(transcript);
     transcript.setInitialTitle();
+    document.getElementById('logout-button').addEventListener('click', logout);
 });
