@@ -6,162 +6,71 @@
     <title>Create New Transcript</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="/call.css">
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <!-- Navigation -->
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white">
-            <a class="navbar-brand" href="dashboard.html">
-                <img src="callsidekicklogo.png" alt="Call Sidekick Logo" width="30" height="30">
-                Call Sidekick
-            </a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        <button class="btn btn-secondary" id="logout-button">Logout</button>
-                    </li>
-                </ul>
+<!-- Navigation -->
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <a class="navbar-brand" href="dashboard.html">
+            <img src="callsidekicklogo.png" alt="Call Sidekick Logo" width="30" height="30">
+            Call Sidekick
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <button class="btn btn-secondary" id="logout-button">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<h2 id="transcript-title" class="container mt-5 transcript-title" data-toggle="modal" data-target="#editTitleModal" style="cursor:pointer;">Loading...</h2>
+<section id="transcript-creation" class="container mt-5">
+    <!-- Placeholder for transcript text -->
+    <div id="transcript-text" class="mt-4 mb-4">
+        <!-- Transcriptions will be inserted here -->
+    </div>
+    <div id="notes">
+        <h3>Notes</h3>
+        <!-- Placeholder for existing notes -->
+        <div id="existing-notes" class="mt-3">
+            <!-- Notes will be dynamically added here -->
+        </div>
+        <!-- Create new notes -->
+        <textarea id="new-note" class="form-control mt-3" rows="3" placeholder="Type your new note here..."></textarea>
+        <button id="save-note" class="btn btn-primary mt-2 custom-button">Save Note</button>
+        <button id="start" class="btn btn-primary mt-2 custom-button">Start Recording</button>
+        <button id="stop" class="btn btn-danger mt-3 custom-button">End Transcript</button>
+    </div>
+</section>
+<div class="modal fade" id="changeTitleModal" tabindex="-1" role="dialog" aria-labelledby="changeTitleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeTitleModalLabel">Change Transcript Title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-        </nav>
-    </header>
-
-    <h2 id="transcript-title" class="container mt-5 transcript-title" data-toggle="modal" data-target="#editTitleModal" style="cursor:pointer;">Loading...</h2>
-    <section id="transcript-creation" class="container mt-5">
-        <!-- Placeholder for transcript text -->
-        <div id="transcript-text" class="mt-4 mb-4">
-            <p>Rev AI, a third party service is called here by the server. The user's audio is sent to the server in real-time over a websocket. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec condimentum, ligula a dictum congue, sem arcu convallis nisi, eu maximus nunc quam sed dui.</p>
-        </div>
-        <div id="notes">
-            <h3>Notes</h3>
-            <!-- Placeholder for existing notes -->
-            <div id="existing-notes" class="mt-3">
-                <!-- Notes will be dynamically added here -->
+            <div class="modal-body">
+                <input type="text" id="newTitle" class="form-control" placeholder="New title...">
             </div>
-            <!-- Create new notes -->
-            <textarea id="new-note" class="form-control mt-3" rows="3" placeholder="Type your new note here..."></textarea>
-            <button id="save-note" class="btn btn-primary mt-2 custom-button">Save Note</button>
-            <button id="transcript-settings" class="btn btn-primary mt-3 custom-button" data-toggle="modal" data-target="#transcriptSettingsModal">Transcript Settings</button>
-            <button id="end-transcript" class="btn btn-danger mt-3 custom-button">End Transcript</button>
-        </div>
-
-        <!-- Transcript and watch phrase buttons -->
-        </div>
-    </section>
-    <!-- Transcript Settings Modal -->
-    <div class="modal fade" id="transcriptSettingsModal" tabindex="-1" role="dialog" aria-labelledby="transcriptSettingsModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="transcriptSettingsModalLabel">Transcript Settings</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" id="transcriptSettingsModalBody">
-                    <h6>Notification Words</h6>
-                    <p>Get notified when these words or phrases are spoken:</p>
-                    <div id="notificationWordsContainer">
-                        <!-- Placeholder for notification words -->
-                    </div>
-                    <input type="text" id="newNotificationWord" class="form-control mb-2" placeholder="New notification word...">
-                    <button id="addNotificationWord" class="btn btn-primary mb-2">Add</button>
-
-                    <hr>
-
-                    <h6>Custom Dictionary Words</h6>
-                    <p>Help make the transcript text more accurate by adding specific words to the dictionary of possible words:</p>
-                    <div id="dictionaryWordsContainer">
-                        <!-- Placeholder for dictionary words -->
-                    </div>
-                    <input type="text" id="newDictionaryWord" class="form-control mb-2" placeholder="New dictionary word...">
-                    <button id="addDictionaryWord" class="btn btn-primary mb-2">Add</button>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="saveTitle" class="btn btn-primary">Save changes</button>
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="changeTitleModal" tabindex="-1" role="dialog" aria-labelledby="changeTitleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="changeTitleModalLabel">Change Transcript Title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" id="newTitle" class="form-control" placeholder="New title...">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" id="saveTitle" class="btn btn-primary">Save changes</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="initCheckModal" tabindex="-1" role="dialog" aria-labelledby="initCheckModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="initCheckModalLabel">Environment Check</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <!-- The initEnvironmentCheck method will fill this in. -->
-                </div>
-                <div class="modal-footer">
-                    <!-- The initEnvironmentCheck method will fill this in. -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="micPermissionModal" tabindex="-1" role="dialog" aria-labelledby="micPermissionModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="micPermissionModalLabel">Microphone Permissions</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    To also transcribe your own words, we also need access to your microphone.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="requestMicrophonePermissions()">Allow Microphone</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Footer -->
-    <footer class="footer mt-auto py-3 bg-dark text-center">
-        <div class="container">
-            <span class="text-muted mr-3">Website by Beau Wright</span>
-            <span class="text-muted mr-3"><a href="https://github.com/beauwright/startup" class="text-white">View on GitHub</a></span>
-        </div>
-    </footer>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-    <!-- Socket -->
-    <script src="/socket.io/socket.io.js"></script>
-    <!-- My JS -->
-    <script src="call.js"></script>
+</div>
+<!-- Other Modals and Footer -->
+<!-- jQuery -->
+<!-- Bootstrap JS -->
+<!-- My JS -->
+<script src="call.js"></script>
 </body>
 </html>

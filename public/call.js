@@ -1,3 +1,86 @@
+const startButton = document.getElementById('start');
+const stopButton = document.getElementById('stop');
+
+let socket, audioContext, workletNode, stream, input;
+
+startButton.addEventListener("click", startRecording);
+stopButton.addEventListener("click", stopRecording);
+
+// Starts the recording process
+async function startRecording() {
+    startButton.disabled = true;
+    stopButton.disabled = false;
+
+    socket = io();
+    audioContext = new AudioContext({ sampleRate: 44100});
+    await audioContext.audioWorklet.addModule('audio-worklet-processor.js');
+
+    // When a transcript is received, append it to the 'transcriptions' div
+    socket.on('transcript', function(transcript) {
+        const transcriptionsDiv = document.getElementById('transcript-text');
+        const p = document.createElement('p');
+        p.textContent = transcript;
+        transcriptionsDiv.appendChild(p);
+    });
+
+    audioContext.resume().then(() => {
+        console.log(audioContext.sampleRate);
+        navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+            .then(handleMicStream)
+            .catch(err => alert('Error accessing microphone: ' + err.message));
+    });
+}
+
+// Handles microphone stream
+function handleMicStream(streamObj) {
+    stream = streamObj;
+    input = audioContext.createMediaStreamSource(stream);
+    workletNode = new AudioWorkletNode(audioContext, 'audio-processor');
+    input.connect(workletNode);
+
+    workletNode.port.onmessage = (event) => {
+        if (event.data.type === 'micBinaryStream') {
+            socket.emit('micBinaryStream', event.data.payload);
+        }
+    };
+}
+
+function stopRecording() {
+    stopButton.disabled = true;
+    startButton.disabled = false;
+
+    if (socket) {
+        socket.disconnect();
+        socket = null;
+    }
+
+    closeAll();
+}
+
+function closeAll() {
+    if (stream) {
+        const track = stream.getTracks()[0];
+        if (track) track.stop();
+    }
+
+    if (workletNode) {
+        workletNode.port.close();
+        workletNode.disconnect();
+        workletNode = null;
+    }
+
+    if (input) {
+        input.disconnect();
+        input = null;
+    }
+
+    if (audioContext) {
+        audioContext.close().then(() => {
+            audioContext = null;
+        });
+    }
+}
+
 async function fetchUser() {
     try {
         const response = await fetch('/api/user/', {
@@ -35,122 +118,29 @@ async function fetchUser() {
     }
 }
 
-
 class Transcript {
     constructor() {
         this.title = document.getElementById('transcript-title');
         this.title.addEventListener('click', () => $('#changeTitleModal').modal('show'));
         document.getElementById('saveTitle').addEventListener('click', this.saveTitle.bind(this));
-
-        fetchUser().then(user => {
-            if (!user) {
-                return; // Stop execution if user is not logged in
-            }
-
-            this.user = user;
-            this.userId = this.user.id;
-
-            // The hard coded name will be replaced with value called from server
-            this.notificationWords = [];
-            this.dictionaryWords = [];
-            this.setupModalListeners();
-            this.initEnvironmentCheck();
-            this.setupScreenShare();
-            console.log(this.user);
-            this.transcriptId = null;
-
-            // create a new AudioContext
-            this.audioContext = null;
-            this.socket = io();
-        });
+        this.user = null;
+        this.userId = null;
+        this.transcriptId = null;
     }
 
     async init() {
-        // create a new AudioContext after user action
-        this.audioContext = new window.AudioContext();
-        this.processor = this.audioContext.createScriptProcessor(16384, 1, 1);
-    }
-    initEnvironmentCheck() {
-        let browser, os;
-        const userAgent = navigator.userAgent;
+        fetchUser().then(user => {
+            this.user = user;
+            this.userId = this.user.id;
 
-        if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
-            browser = "Chrome";
-        } else if (userAgent.includes("Edg")) {
-            browser = "Edge";
-        }
+            console.log(this.user);
+        })
+            .then(r => {
 
-        if (navigator.platform.includes("Win")) {
-            os = "Windows";
-        } else if (navigator.platform.includes("Mac")) {
-            os = "MacOS";
-        } else if (navigator.platform.includes("Linux")) {
-            os = "Linux";
-        }
-
-        // Show the modal with appropriate message
-        if (browser === "Chrome" || browser === "Edge") {
-            if (os === "Windows" || os === "ChromeOS") {
-                // User should screen share their audio
-                $('#initCheckModal .modal-body').text(`Screen sharing is used to analyze the audio of your call. Ensure the "share desktop audio" box is checked so Call Sidekick can analyze the audio of your call.`);
-                $('#initCheckModal .modal-footer').html(`<button id="startScreenShare" class="btn btn-primary">Start Screen Share</button>
-                                                         <button id="bypassScreenShare" class="btn btn-secondary">Bypass Screen Share</button>`);
-            } else if (os === "MacOS" || os === "Linux") {
-                // User should screen share their audio and use web version of their video call service
-                $('#initCheckModal .modal-body').text(`${browser} currently only supports audio capture of other ${browser} tabs on ${os}. Most video call platforms like Zoom, Google Meet, and Discord have web versions. Open your video call in your web browser, screen share that tab with the "share tab audio" box checked, and navigate back to this tab so Call Sidekick can analyze the audio of your call.`);
-                $('#initCheckModal .modal-footer').html(`<button id="startScreenShare" class="btn btn-primary">Start Screen Share</button>
-                                                         <button id="bypassScreenShare" class="btn btn-secondary">Bypass Screen Share</button>`);
-            }
-        } else {
-            // Browser not supported
-            $('#initCheckModal .modal-body').text(`You are using an unsupported browser. Only Chrome and Edge are currently supported.`);
-            $('#initCheckModal .modal-footer').html(`<button class="btn btn-secondary" data-dismiss="modal">Close</button>`);
-        }
-
-        $('#initCheckModal').modal('show');
-    }
-
-    setupScreenShare() {
-        document.getElementById('startScreenShare').addEventListener('click', this.startScreenShare.bind(this));
-        document.getElementById('startScreenShare').addEventListener('click', this.init.bind(this));
-        document.getElementById('bypassScreenShare').addEventListener('click', this.bypassScreenShare.bind(this));
-        document.getElementById('bypassScreenShare').addEventListener('click', this.init.bind(this));
-
-    }
-
-    async startScreenShare() {
-        try {
-            const displayMediaOptions = {
-                video: {
-                    cursor: "always"
-                },
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    sampleRate: 41000
-                }
-            };
-
-            const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
-            this.videoStream = stream;
-
-            // connect the screenshare audio to the AudioContext
-            const videoSource = this.audioContext.createMediaStreamSource(this.videoStream);
-            this.videoGainNode = this.audioContext.createGain();
-            videoSource.connect(this.videoGainNode);
-
-            // initiate microphone permissions
-            $('#initCheckModal').modal('hide');
-            this.requestMicrophonePermissions();
-        } catch(err) {
-            console.error("Error: " + err);
-        }
-    }
-    bypassScreenShare() {
-        // Close the initial check modal
-        $('#initCheckModal').modal('hide');
-        // Open a new modal for microphone permissions
-        this.requestMicrophonePermissions();
+                console.log(this.user);
+                // Don't call createTranscript until we've fetched the user since the id is needed
+                this.createTranscript();
+            });
     }
 
     requestMicrophonePermissions() {
@@ -168,56 +158,6 @@ class Transcript {
             });
     }
 
-    handleMicStream(streamObj) {
-        this.stream = streamObj;
-        this.input = this.audioContext.createMediaStreamSource(this.stream);
-        this.input.connect(this.processor);
-        this.processor.onaudioprocess = e => {
-            this.microphoneProcess(e);
-        };
-    }
-
-    microphoneProcess(e) {
-        const left = e.inputBuffer.getChannelData(0);
-        const left16 = this.convertFloat32ToInt16(left);
-        this.socket.emit('micBinaryStream', left16);
-    }
-
-    convertFloat32ToInt16(buffer) {
-        let l = buffer.length;
-        const buf = new Int16Array(l / 3);
-        while (l--) {
-            if (l % 3 === 0) {
-                buf[l / 3] = buffer[l] * 0xFFFF;
-            }
-        }
-        return buf.buffer;
-    }
-
-    closeAll() {
-        const tracks = this.stream ? this.stream.getTracks() : null;
-        const track = tracks ? tracks[0] : null;
-        if (track) {
-            track.stop();
-        }
-        if (this.processor) {
-            if (this.input) {
-                try {
-                    this.input.disconnect(this.processor);
-                } catch (error) {
-                    console.warn('Attempt to disconnect input failed.');
-                }
-            }
-            this.processor.disconnect(this.audioContext.destination);
-        }
-        if (this.audioContext) {
-            this.audioContext.close().then(() => {
-                this.input = null;
-                this.processor = null;
-                this.audioContext = null;
-            });
-        }
-    }
     setInitialTitle() {
         const date = new Date();
         this.title.textContent = `${(date.getMonth() + 1)}/${date.getDate()}/${date.getFullYear().toString().slice(-2)} ${date.toLocaleTimeString()} Transcript`;
@@ -226,7 +166,7 @@ class Transcript {
     async createTranscript() {
         try {
             const makeTranscriptDetails = {
-                title: this.title.textContent || "Untitled Transcript",
+                title: this.title.textContent,
                 text: "placeholder text until websocket is implemented",
                 userId: this.userId,
             }
@@ -261,117 +201,12 @@ class Transcript {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ title: newTitle }),
+                body: JSON.stringify({title: newTitle}),
             });
             if (!response.ok) {
                 console.log('Title update failed');
             }
         }
-    }
-
-    async loadSettings() {
-        try {
-            const response = await fetch(`/api/users/${this.userId}/transcripts/${this.transcriptId}/settings`);
-            const data = await response.json();
-            this.notificationWords = data.notificationWords || [];
-            this.dictionaryWords = data.dictionaryWords || [];
-        } catch (err) {
-            console.error('Error:', err);
-        }
-    }
-
-    async saveSettings() {
-        const settings = {
-            notificationWords: this.notificationWords,
-            dictionaryWords: this.dictionaryWords,
-        };
-        try {
-            await fetch(`/api/users/${this.userId}/transcripts/${this.transcriptId}/settings`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(settings)
-            });
-        } catch (err) {
-            console.error('Error:', err);
-        }
-    }
-
-    setupModalListeners() {
-        $('#transcriptSettingsModal')
-            .on('show.bs.modal', this.populateModal.bind(this))
-            .on('hide.bs.modal', this.saveSettings.bind(this)); // Save the settings when the modal is closed
-    }
-
-
-    populateModal() {
-        const containers = {
-            notification: document.getElementById('notificationWordsContainer'),
-            dictionary: document.getElementById('dictionaryWordsContainer')
-        };
-
-        containers.notification.innerHTML = '';
-        containers.dictionary.innerHTML = '';
-
-        const addButtons = {
-            notification: document.getElementById('addNotificationWord'),
-            dictionary: document.getElementById('addDictionaryWord')
-        };
-
-        const newWordInputs = {
-            notification: document.getElementById('newNotificationWord'),
-            dictionary: document.getElementById('newDictionaryWord')
-        };
-
-        this.addWordListeners(addButtons, newWordInputs, containers);
-        this.populateWordContainers(containers);
-    }
-
-    addWordListeners(addButtons, newWordInputs, containers) {
-        addButtons.notification.addEventListener('click', () => this.addNewWord(newWordInputs.notification, this.notificationWords, containers.notification));
-        addButtons.dictionary.addEventListener('click', () => this.addNewWord(newWordInputs.dictionary, this.dictionaryWords, containers.dictionary));
-    }
-
-    addNewWord(newWordInput, wordArray, container) {
-        const newWord = newWordInput.value;
-        if (newWord !== '' && !wordArray.includes(newWord)) {
-            wordArray.push(newWord);
-            this.addWord(newWord, container, wordArray);
-            newWordInput.value = '';
-        }
-    }
-
-    addWord(word, container, wordArray) {
-        const wordElement = document.createElement('div');
-        wordElement.classList.add('mb-2', 'd-flex', 'justify-content-between', 'align-items-center');
-        wordElement.innerHTML = `
-            <span>${word}</span>
-            <button class="btn btn-danger">Remove</button>
-        `;
-        wordElement.querySelector('button').addEventListener('click', () => this.removeWord(word, wordElement, wordArray));
-        container.appendChild(wordElement);
-    }
-
-    removeWord(word, wordElement, wordArray) {
-        const index = wordArray.indexOf(word);
-        if (index > -1) {
-            wordArray.splice(index, 1);
-        }
-        wordElement.remove();
-    }
-
-    populateWordContainers(containers) {
-        for (const word of this.notificationWords) {
-            this.addWord(word, containers.notification, this.notificationWords);
-        }
-        for (const word of this.dictionaryWords) {
-            this.addWord(word, containers.dictionary, this.dictionaryWords);
-        }
-    }
-
-    initiateTranscript() {
-        console.log('Initiate transcript');
     }
 }
 
@@ -380,7 +215,7 @@ class Notes {
         this.transcript = transcript;
         this.container = document.getElementById('existing-notes');
         document.getElementById('save-note').addEventListener('click', this.saveNote.bind(this));
-        document.getElementById('end-transcript').addEventListener('click', this.endTranscript.bind(this));
+        document.getElementById('stop').addEventListener('click', this.endTranscript.bind(this));
     }
 
     saveNote() {
@@ -405,7 +240,6 @@ class Notes {
             this.sendNoteToServer(newNote, noteTime);
         }
     }
-
 
     async sendNoteToServer(note, timestamp) {
         try {
@@ -452,5 +286,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const transcript = new Transcript();
     new Notes(transcript);
     transcript.setInitialTitle();
+    transcript.init();
     document.getElementById('logout-button').addEventListener('click', logout);
 });
