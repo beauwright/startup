@@ -3,33 +3,8 @@ const stopButton = document.getElementById('stop');
 
 let socket, audioContext, workletNode, stream, input;
 
-startButton.addEventListener("click", startRecording);
 stopButton.addEventListener("click", stopRecording);
 
-// Starts the recording process
-async function startRecording() {
-    startButton.disabled = true;
-    stopButton.disabled = false;
-
-    socket = io();
-    audioContext = new AudioContext({ sampleRate: 44100});
-    await audioContext.audioWorklet.addModule('audio-worklet-processor.js');
-
-    // When a transcript is received, append it to the 'transcriptions' div
-    socket.on('transcript', function(transcript) {
-        const transcriptionsDiv = document.getElementById('transcript-text');
-        const p = document.createElement('p');
-        p.textContent = transcript;
-        transcriptionsDiv.appendChild(p);
-    });
-
-    audioContext.resume().then(() => {
-        console.log(audioContext.sampleRate);
-        navigator.mediaDevices.getUserMedia({ video: false, audio: true })
-            .then(handleMicStream)
-            .catch(err => alert('Error accessing microphone: ' + err.message));
-    });
-}
 
 // Handles microphone stream
 function handleMicStream(streamObj) {
@@ -46,9 +21,6 @@ function handleMicStream(streamObj) {
 }
 
 function stopRecording() {
-    stopButton.disabled = true;
-    startButton.disabled = false;
-
     if (socket) {
         socket.disconnect();
         socket = null;
@@ -126,6 +98,7 @@ class Transcript {
         this.user = null;
         this.userId = null;
         this.transcriptId = null;
+        this.allTranscriptText = "";
     }
 
     async init() {
@@ -141,6 +114,62 @@ class Transcript {
                 // Don't call createTranscript until we've fetched the user since the id is needed
                 this.createTranscript();
             });
+    }
+
+    async startRecording() {
+        startButton.disabled = true;
+        stopButton.disabled = false;
+
+        socket = io();
+        audioContext = new AudioContext({ sampleRate: 44100});
+        await audioContext.audioWorklet.addModule('audio-worklet-processor.js');
+
+        // When a transcript is received, append it to the 'transcriptions' div
+        socket.on('transcript', async function(transcript) {
+            // Append the new transcript to existing ones
+            if(this.allTranscriptText !== "") {
+                this.allTranscriptText += "\n" + transcript;
+            } else {
+                this.allTranscriptText += transcript;
+            }
+
+            // Get userId and transcriptId from this Transcript instance:
+            const userId = this.userId;
+            const transcriptId = this.transcriptId;
+
+            const transcriptionsDiv = document.getElementById('transcript-text');
+            const p = document.createElement('p');
+            p.textContent = transcript;
+            transcriptionsDiv.appendChild(p);
+
+            // Scroll the container to the bottom
+            transcriptionsDiv.scrollTop = transcriptionsDiv.scrollHeight;
+
+            // Append new transcript to server
+            try {
+                // TODO: FIX THIS. This is super inefficient and should be handled on the server side but this was quicker
+                const response = await fetch(`/api/users/${userId}/transcripts/${transcriptId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({text: this.allTranscriptText}),
+                });
+
+                if (!response.ok) {
+                    console.log(`Server response was not ok: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Failed to update transcript on server:', error);
+            }
+        }.bind(this)); // Use bind(this) to access the Transcript instance inside the callback
+
+        audioContext.resume().then(() => {
+            console.log(audioContext.sampleRate);
+            navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+                .then(handleMicStream)
+                .catch(err => alert('Error accessing microphone: ' + err.message));
+        });
     }
 
     requestMicrophonePermissions() {
@@ -167,7 +196,7 @@ class Transcript {
         try {
             const makeTranscriptDetails = {
                 title: this.title.textContent,
-                text: "placeholder text until websocket is implemented",
+                text: "",
                 userId: this.userId,
             }
             console.log(this.userId);
@@ -288,4 +317,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
     transcript.setInitialTitle();
     transcript.init();
     document.getElementById('logout-button').addEventListener('click', logout);
+
+    // Add the event listeners here and bind them to the transcript instance
+    startButton.addEventListener("click", transcript.startRecording.bind(transcript));
+    stopButton.addEventListener("click", stopRecording);
 });

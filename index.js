@@ -42,7 +42,6 @@ io.on('connection', (socket) => {
         if (data.type === 'final') {
           const transcript = data.elements.map(element => element.value).join('');
           socket.emit('transcript', transcript);
-          console.log(transcript); // Output the transcript to console
         }
       });
 
@@ -269,9 +268,11 @@ secureApiRouter.get('/users/:userId/transcripts/:transcriptId/settings', async (
 secureApiRouter.patch('/users/:userId/transcripts/:transcriptId', async (req, res) => {
   const transcriptId = req.params.transcriptId;
   const newTitle = req.body.title;
+  const newText = req.body.text;  // Get the new text from the request body
 
-  if (!newTitle) {
-    return res.status(400).send({ message: 'New title is required' });
+  // Check if the new title or new text are provided
+  if (!newTitle && !newText) {
+    return res.status(400).send({ message: 'New title or new text is required' });
   }
 
   const transcript = await database.getTranscriptById(transcriptId);
@@ -279,9 +280,13 @@ secureApiRouter.patch('/users/:userId/transcripts/:transcriptId', async (req, re
   if (!transcript) {
     res.status(404).send({ message: 'Transcript not found' });
   } else {
-    await database.updateTranscript(transcriptId, { title: newTitle });
+    const updatedFields = {};  // Object to hold fields to be updated
+    if (newTitle) updatedFields.title = newTitle;
+    if (newText) updatedFields.text = newText;  // Add the new text to the fields to be updated
+
+    await database.updateTranscript(transcriptId, updatedFields);
     const updatedTranscript = await database.getTranscriptById(transcriptId);
-    res.send({ message: 'Transcript title updated successfully', transcript: updatedTranscript });
+    res.send({ message: 'Transcript updated successfully', transcript: updatedTranscript });
   }
 });
 
