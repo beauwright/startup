@@ -89,3 +89,55 @@ In the call page, the user can now edit the title, take notes, and edit the tran
 JS was used to add a nice fade in effect to the cards on the home page as you scroll.
 ## 
 There are multiple Git commits, each with a specific, useful comment attached ✅
+
+# Startup Service
+- Create an HTTP service using Node.js and Express ✅
+  - Done!
+- Frontend served up using Express static middleware ✅
+  - The static middleware now handles serving up the front end
+- Your frontend calls third party service endpoints ✅
+  - There's a third party joke API called at the bottom of the user's dashboard
+- Your backend provides service endpoints ✅
+  - Endpoints exist for retrieving existing transcripts, making new transcripts, updating existing transcripts, and creating notes
+- Your frontend calls your service endpoints ✅
+  - My frontend makes good use of my service endpoints
+## 
+There are multiple Git commits, each with a specific, useful comment attached ✅
+
+
+# Startup DB
+Application database support
+- MongoDB Atlas database created ✅
+  - A mongoDB DB was created and is used to store login info, transcripts, and notes
+- Provides backend endpoints for manipulating application data ✅
+  - The backend has endpoints for creating transcripts, updating transcripts, and creating notes
+- Stores application data in MongoDB ✅
+  - The transcripts and notes text are stored in mongoDB
+## 
+There are multiple Git commits, each with a specific, useful comment attached ✅
+
+
+# Login Deliverable
+- Supports new user registration ✅
+  - Users can register an account
+- Supports existing user authentication ✅
+  - Users can login
+- Stores and retrieves credentials in MongoDB ✅
+  - User's login info is stored in a MongoDB
+- Restricts application functionality based upon authentication ✅
+  - Users are restricted to seeing content related to their own account
+## 
+There are multiple Git commits, each with a specific, useful comment attached ✅
+
+# WebSocket Deliverable
+- Backend listens for WebSocket connection ✅
+  - The backend listens for the websocket connection
+- Frontend makes WebSocket connection ✅
+  - When the "start transcript" button is pressed on the call page, the frontend establishes a websocket with the backend
+- Data sent over WebSocket connection ✅
+  - The backend listens for a binary stream of audio and then forwards the binary audio stream on to Rev AI for transcription. The backend listens for text from Rev AI and passes that back to the front end over the websocket.
+  - (Note to TAs the current implementation requires your computer supports a 44100HZ sample rate for audio which is very likely does unless you've got a fancy external audio interface that's locked to 48000 HZ)
+- WebSocket data displayed in the application interface ✅
+  - The transcription text sent to the front end is shown in the big left box.
+## 
+There are multiple Git commits, each with a specific, useful comment attached ✅
