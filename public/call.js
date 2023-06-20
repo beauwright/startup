@@ -58,10 +58,18 @@ class Transcript {
             this.setupScreenShare();
             console.log(this.user);
             this.transcriptId = null;
+
+            // create a new AudioContext
+            this.audioContext = null;
+            this.socket = io();
         });
     }
 
-
+    async init() {
+        // create a new AudioContext after user action
+        this.audioContext = new window.AudioContext();
+        this.processor = this.audioContext.createScriptProcessor(16384, 1, 1);
+    }
     initEnvironmentCheck() {
         let browser, os;
         const userAgent = navigator.userAgent;
@@ -104,7 +112,10 @@ class Transcript {
 
     setupScreenShare() {
         document.getElementById('startScreenShare').addEventListener('click', this.startScreenShare.bind(this));
+        document.getElementById('startScreenShare').addEventListener('click', this.init.bind(this));
         document.getElementById('bypassScreenShare').addEventListener('click', this.bypassScreenShare.bind(this));
+        document.getElementById('bypassScreenShare').addEventListener('click', this.init.bind(this));
+
     }
 
     async startScreenShare() {
@@ -116,20 +127,25 @@ class Transcript {
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    sampleRate: 44100
+                    sampleRate: 41000
                 }
             };
 
             const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
-            // Handle the audio stream for further use (e.g., sending it to the server)
+            this.videoStream = stream;
+
+            // connect the screenshare audio to the AudioContext
+            const videoSource = this.audioContext.createMediaStreamSource(this.videoStream);
+            this.videoGainNode = this.audioContext.createGain();
+            videoSource.connect(this.videoGainNode);
+
+            // initiate microphone permissions
             $('#initCheckModal').modal('hide');
-            // Request microphone permissions after closing the screen share modal
             this.requestMicrophonePermissions();
         } catch(err) {
             console.error("Error: " + err);
         }
     }
-
     bypassScreenShare() {
         // Close the initial check modal
         $('#initCheckModal').modal('hide');
@@ -139,29 +155,69 @@ class Transcript {
 
     requestMicrophonePermissions() {
         navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                this.audioStream = stream;
-                this.setInitialTitle();
-                this.initiateTranscript();
-                $('#micPermissionModal').modal('hide');
-
-                // Create new transcript
-                this.createTranscript();
-                this.loadSettings;
-
-            })
+            .then(this.handleMicStream.bind(this))
             .catch(err => {
-                // Handling the error appropriately.
+                // handle the error appropriately
                 console.log('Microphone permission denied', err);
                 $('#micPermissionModal .modal-body').text(`Microphone permission was denied. Microphone access is needed so your own words will also be included in the transcript.`);
                 $('#micPermissionModal .modal-footer').html(`<button class="btn btn-primary" id="retryPermissions">Retry Permissions</button>
-                                                     <button class="btn btn-secondary" data-dismiss="modal">Close</button>`);
+                                         <button class="btn btn-secondary" data-dismiss="modal">Close</button>`);
                 document.getElementById('retryPermissions').addEventListener('click', this.requestMicrophonePermissions.bind(this));
                 // Show the microphone permission modal
                 $('#micPermissionModal').modal('show');
             });
     }
 
+    handleMicStream(streamObj) {
+        this.stream = streamObj;
+        this.input = this.audioContext.createMediaStreamSource(this.stream);
+        this.input.connect(this.processor);
+        this.processor.onaudioprocess = e => {
+            this.microphoneProcess(e);
+        };
+    }
+
+    microphoneProcess(e) {
+        const left = e.inputBuffer.getChannelData(0);
+        const left16 = this.convertFloat32ToInt16(left);
+        this.socket.emit('micBinaryStream', left16);
+    }
+
+    convertFloat32ToInt16(buffer) {
+        let l = buffer.length;
+        const buf = new Int16Array(l / 3);
+        while (l--) {
+            if (l % 3 === 0) {
+                buf[l / 3] = buffer[l] * 0xFFFF;
+            }
+        }
+        return buf.buffer;
+    }
+
+    closeAll() {
+        const tracks = this.stream ? this.stream.getTracks() : null;
+        const track = tracks ? tracks[0] : null;
+        if (track) {
+            track.stop();
+        }
+        if (this.processor) {
+            if (this.input) {
+                try {
+                    this.input.disconnect(this.processor);
+                } catch (error) {
+                    console.warn('Attempt to disconnect input failed.');
+                }
+            }
+            this.processor.disconnect(this.audioContext.destination);
+        }
+        if (this.audioContext) {
+            this.audioContext.close().then(() => {
+                this.input = null;
+                this.processor = null;
+                this.audioContext = null;
+            });
+        }
+    }
     setInitialTitle() {
         const date = new Date();
         this.title.textContent = `${(date.getMonth() + 1)}/${date.getDate()}/${date.getFullYear().toString().slice(-2)} ${date.toLocaleTimeString()} Transcript`;
@@ -183,7 +239,7 @@ class Transcript {
                 },
                 body: JSON.stringify(makeTranscriptDetails),
             });
-    
+
             const data = await response.json();
             console.log(this.transcriptId);
             this.transcriptId = data.transcript.id;
@@ -316,7 +372,6 @@ class Transcript {
 
     initiateTranscript() {
         console.log('Initiate transcript');
-        // Additional code here...
     }
 }
 
