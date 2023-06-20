@@ -1,6 +1,6 @@
 class AudioProcessor extends AudioWorkletProcessor {
     static get parameterDescriptors() {
-        return [{name: 'threshold', defaultValue: 22050}]; // Sets a threshold before firing off (1 second of audio at 44100 Hz)
+        return [{name: 'threshold', defaultValue: 22050}]; // Sets a threshold before firing off (1/2 a second of audio at 44100 Hz)
     }
 
     constructor() {
