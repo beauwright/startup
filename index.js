@@ -5,11 +5,80 @@ const cookieParser = require('cookie-parser');
 const database = require('./database');
 const app = express();
 const port = process.argv.length > 2 ? process.argv[2] : 4000;
+const socketIO = require('socket.io');
+const revai = require('revai-node-sdk');
+const config = require('./dbConfig.json');
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static('public'));
 
+
+server = app.listen(port, () => {
+  console.log(`Listening on ${port}`);
+});
+
+const io = socketIO(server);
+
+io.on('connection', (socket) => {
+  console.log('User connected');
+  let rev_connection = null;
+  let audioStream = null;
+
+  socket.on('micBinaryStream', async (streamData) => {
+    // Assuming 'streamData' contains audio binary data
+    if (!audioStream) {
+      rev_connection = new revai.RevAiStreamingClient(config.revAIToken, new revai.AudioConfig(
+          /* contentType */ "audio/x-raw",
+          /* layout */      "non-interleaved",
+          /* sample rate */ 44100,
+          /* format */      "S16LE",
+          /* channels */    1,
+      ));
+      const sessionConfig = new revai.SessionConfig(null, null, null, null, null, null, null, null, null, false, true);
+      audioStream = rev_connection.start(sessionConfig);
+
+      audioStream.on('data', (data) => {
+        if (data.type === 'final') {
+          const transcript = data.elements.map(element => element.value).join('');
+          socket.emit('transcript', transcript);
+          console.log(transcript); // Output the transcript to console
+        }
+      });
+
+      // Handle errors during transcription
+      audioStream.on('error', (err) => {
+        console.error('Error during transcription:', err);
+        socket.emit('error', { error: 'Error during transcription' });
+        socket.disconnect();
+
+      });
+    }
+
+    // Check if the data is binary before writing to the stream
+    if (Buffer.isBuffer(streamData)) {
+      audioStream.write(streamData);
+    } else {
+      console.error('Received non-binary data');
+      socket.emit('error', { error: 'Expected binary audio data' });
+      socket.disconnect();
+    }
+  });
+
+  socket.on('disconnect', () => {
+    if (audioStream) {
+      try {
+        console.log('Closing audioStream...');
+        rev_connection.end();
+      } catch (error) {
+        console.error('Error when ending the audio stream:', error);
+      } finally {
+        audioStream = null;
+      }
+    }
+    console.log('User disconnected');
+  });
+});
 
 const authCookieName = 'token';
 const apiRouter = express.Router();
@@ -191,7 +260,7 @@ secureApiRouter.get('/users/:userId/transcripts/:transcriptId/settings', async (
   if (!transcript) {
     res.status(404).send({ message: 'Transcript not found' });
   } else {
-    const settings = await database.getTranscriptSettings(transcriptId);
+    const settings = await database.getTranscriptSettings(transcriptId) || { "notificationWords": [], "dictionaryWords": []};
     res.json(settings);
   }
 });
@@ -240,8 +309,4 @@ app.use("/api/*", (_req, res) => {
 
 app.use((_req, res) => {
   res.sendFile('index.html', { root: 'public' });
-});
-
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
 });
