@@ -148,11 +148,23 @@ There are multiple Git commits, each with a specific, useful comment attached �
   - (Note to TAs the current implementation requires your computer supports a 44100HZ sample rate for audio which is very likely does unless you've got a fancy external audio interface that's locked to 48000 HZ)
 - WebSocket data displayed in the application interface ✅
   - The transcription text sent to the front end is shown in the big left box.
-## What changed for the websocket version?
+## What changed for the WebSocket version?
 A crazy amount of work went into this one. Unfortunately, I had to drop some transcript settings that were in earlier versions and screenshare audio to focus on getting the websocket complete but I plan on finishing this later on my own, and it doesn't affect any of the website requirements for this class.
 
 Additionally, I had to figure out how to capture microphone audio as 16 Bit INT uncompressed audio and send it as a binary stream to the server to pass on to Rev AI. This meant learning a lot more about how audio works than I realized I would need to!
 
 The transcript text received back from Rev AI over a websocket is then passed back to the user over their websocket which means the transcript text is finally functional and no longer just placeholder text!
+##
+There are multiple Git commits, each with a specific, useful comment attached ✅
+
+# React Deliverable
+- Bundled using Vite ✅
+  - The Vite toolchain is used in this latest version
+- Multiple functional react components
+  - The login, signup, and homepage as well as the NavBar and Footer are now React components. The call page is still vanilla JavaScript and HTML. Hopefully I can get some credit for this work? The call.js was pretty complicated and I ran out of time to recreate it in React.
+- React router ✅
+  - The react router hooks together all the react pages
+- React hooks
+  - The useState hook is used in the login and signup pages
 ##
 There are multiple Git commits, each with a specific, useful comment attached ✅
