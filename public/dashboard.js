@@ -5,12 +5,12 @@ document.addEventListener('DOMContentLoaded', function() {
         credentials: 'same-origin',  // This includes cookies in the request
     })
         .catch(fetch => {
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         })
         .then(response => {
             if (response.status === 401) {
                 // User is not authenticated. Redirect them to login page
-                window.location.href = 'login.html';
+                window.location.href = 'login';
             }
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = 'login.html';
+                    window.location.href = 'login';
                 } else {
                     console.error('Logout failed:', response);
                 }

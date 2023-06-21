@@ -59,12 +59,12 @@ async function fetchUser() {
             credentials: 'same-origin',  // This includes cookies in the request
         })
             .catch(response => {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
             });
 
         if (response.status === 401) {
             // User is not authenticated. Redirect them to login page
-            window.location.href = '/login.html';
+            window.location.href = '/login';
             return null;
         }
 
@@ -85,7 +85,7 @@ async function fetchUser() {
         }
     } catch (error) {
         console.error('Error:', error);
-        window.location.href = '/login.html'; // redirect to login page
+        window.location.href = '/login'; // redirect to login page
         return null;
     }
 }
@@ -305,7 +305,7 @@ async function logout() {
         }
 
         // Redirect to the login page on successful logout
-        window.location.href = '/login.html';
+        window.location.href = '/login';
     } catch (error) {
         console.error('Error:', error);
     }
